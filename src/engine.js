@@ -54,6 +54,8 @@ const obj2 = new Object3D({
 });
 
 class Engine {
+  #objects = {};
+
   constructor() {
     this.background = [0.0, 0.0, 0.0, 1.0];
 
@@ -84,6 +86,10 @@ class Engine {
     gl.enable(gl.DEPTH_TEST);
 
     this._initShaders();
+
+    this.addObject(obj1);
+    this.addObject(obj2);
+
     this.render();
   }
 
@@ -210,6 +216,35 @@ class Engine {
     );
   }
 
+  getUniqueID() {
+    const MAX = 1000000;
+    const MIN = 1;
+    const id = Math.floor(Math.random() * (MAX - MIN + 1)) + MIN;
+    if (this.#objects[id]) {
+      return this.getUniqueID();
+    }
+
+    return id;
+  }
+
+  getObject(id) {
+    return this.#objects[id];
+  }
+
+  addObject(obj) {
+    if (!(obj instanceof Object3D)) {
+      throw new Error("obj must be an instance of Object3D");
+    }
+    const id = this.getUniqueID();
+    this.#objects[id] = obj;
+
+    console.log("Adding object with id: ", id);
+  }
+
+  removeObject(id) {
+    delete this.#objects[id];
+  }
+
   render() {
     const gl = this.gl;
 
@@ -229,8 +264,9 @@ class Engine {
     // Render
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    this.renderObject(obj1);
-    this.renderObject(obj2);
+    for (const obj of Object.values(this.#objects)) {
+      this.renderObject(obj);
+    }
 
     window.requestAnimationFrame(this.render.bind(this));
   }
