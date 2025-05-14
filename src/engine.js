@@ -54,38 +54,47 @@ const obj2 = new Object3D({
 });
 
 class Engine {
+  #canvas;
   #objects = {};
+  #shader = {};
+  #background = [0.0, 0.0, 0.0, 1.0];
 
-  constructor() {
-    this.background = [0.0, 0.0, 0.0, 1.0];
-
-    this.shader = {};
-    this.init();
+  constructor(canvasID = "canvas") {
+    this._initComponents(canvasID);
   }
 
-  init() {
-    this.canvas = document.getElementById("canvas");
+  _initComponents(canvasID) {
+    this.#canvas = document.getElementById(canvasID);
 
-    this.canvas.width = window.innerWidth;
-    this.canvas.height = window.innerHeight;
+    if (!this.#canvas) {
+      throw new Error("Canvas not found");
+    }
+
+    console.log("Canvas: ", this.#canvas.width, this.#canvas.height);
+    this.#canvas.width = window.innerWidth;
+    this.#canvas.height = window.innerHeight;
     window.addEventListener("resize", () => {
-      this.canvas.width = window.innerWidth;
-      this.canvas.height = window.innerHeight;
-      this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+      this.#canvas.width = window.innerWidth;
+      this.#canvas.height = window.innerHeight;
+      this.gl.viewport(0, 0, this.#canvas.width, this.#canvas.height);
     });
 
-    const gl = this.canvas.getContext("webgl2");
+    const gl = this.#canvas.getContext("webgl2");
+    if (!gl) {
+      alert("Vixe! Não achei WebGL 2.0 aqui :-(");
+      throw new Error("WebGL 2.0 not supported");
+    }
+
     this.gl = gl;
+  }
 
-    if (!gl) alert("Vixe! Não achei WebGL 2.0 aqui :-(");
-
-    console.log("Canvas: ", this.canvas.width, this.canvas.height);
-
-    gl.viewport(0, 0, this.canvas.width, this.canvas.height);
-    gl.clearColor(...this.background);
+  async init() {
+    const gl = this.gl;
+    gl.viewport(0, 0, this.#canvas.width, this.#canvas.height);
+    gl.clearColor(...this.#background);
     gl.enable(gl.DEPTH_TEST);
 
-    this._initShaders();
+    await this._initShaders();
 
     this.addObject(obj1);
     this.addObject(obj2);
@@ -93,41 +102,45 @@ class Engine {
     this.render();
   }
 
-  _initShaders() {
+  async _initShaders() {
     const gl = this.gl;
-    this.shader.program = makeProgram(gl, gVertexShaderSrc, gFragmentShaderSrc);
-    gl.useProgram(this.shader.program);
+    this.#shader.program = makeProgram(
+      gl,
+      gVertexShaderSrc,
+      gFragmentShaderSrc
+    );
+    gl.useProgram(this.#shader.program);
 
     // buffer dos índices dos vértices
-    this.shader.bufIndices = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.shader.bufIndices);
+    this.#shader.bufIndices = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.#shader.bufIndices);
 
     // buffer dos vértices
-    this.shader.bufVertices = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.shader.bufVertices);
+    this.#shader.bufVertices = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.#shader.bufVertices);
 
-    this.shader.aPosition = gl.getAttribLocation(
-      this.shader.program,
+    this.#shader.aPosition = gl.getAttribLocation(
+      this.#shader.program,
       "aPosition"
     );
-    gl.vertexAttribPointer(this.shader.aPosition, 3, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(this.shader.aPosition);
+    gl.vertexAttribPointer(this.#shader.aPosition, 3, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(this.#shader.aPosition);
 
     // buffer de cores
-    this.shader.bufColors = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.shader.bufColors);
+    this.#shader.bufColors = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.#shader.bufColors);
 
-    this.shader.aColor = gl.getAttribLocation(this.shader.program, "aColor");
-    gl.vertexAttribPointer(this.shader.aColor, 4, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(this.shader.aColor);
+    this.#shader.aColor = gl.getAttribLocation(this.#shader.program, "aColor");
+    gl.vertexAttribPointer(this.#shader.aColor, 4, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(this.#shader.aColor);
 
     // resolve os uniforms
-    this.shader.uModelView = gl.getUniformLocation(
-      this.shader.program,
+    this.#shader.uModelView = gl.getUniformLocation(
+      this.#shader.program,
       "uModelView"
     );
-    this.shader.uPerspective = gl.getUniformLocation(
-      this.shader.program,
+    this.#shader.uPerspective = gl.getUniformLocation(
+      this.#shader.program,
       "uPerspective"
     );
 
@@ -135,7 +148,7 @@ class Engine {
     // que é feita apenas 1 vez
     gCtx.perspectiva = perspective(60, 1, 0.1, 5);
     gl.uniformMatrix4fv(
-      this.shader.uPerspective,
+      this.#shader.uPerspective,
       false,
       flatten(gCtx.perspectiva)
     );
@@ -148,7 +161,7 @@ class Engine {
   }
 
   bindVertices(vertices) {
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.shader.bufVertices);
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.#shader.bufVertices);
     this.gl.bufferData(
       this.gl.ARRAY_BUFFER,
       flatten(vertices),
@@ -157,7 +170,7 @@ class Engine {
   }
 
   bindColors(colors) {
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.shader.bufColors);
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.#shader.bufColors);
     this.gl.bufferData(
       this.gl.ARRAY_BUFFER,
       flatten(colors),
@@ -166,7 +179,7 @@ class Engine {
   }
 
   bindIndices(indices) {
-    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.shader.bufIndices);
+    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.#shader.bufIndices);
     this.gl.bufferData(
       this.gl.ELEMENT_ARRAY_BUFFER,
       new Uint8Array(cube.indices),
@@ -185,7 +198,7 @@ class Engine {
 
     const model = cube.getModelMatrix();
     this.gl.uniformMatrix4fv(
-      this.shader.uModelView,
+      this.#shader.uModelView,
       false,
       flatten(mult(this.view, model))
     );
@@ -203,7 +216,7 @@ class Engine {
 
     const model = obj.getModelMatrix();
     this.gl.uniformMatrix4fv(
-      this.shader.uModelView,
+      this.#shader.uModelView,
       false,
       flatten(mult(this.view, model))
     );
@@ -245,6 +258,8 @@ class Engine {
     delete this.#objects[id];
   }
 
+  update(dt) {}
+
   render() {
     const gl = this.gl;
 
@@ -269,6 +284,12 @@ class Engine {
     }
 
     window.requestAnimationFrame(this.render.bind(this));
+  }
+
+  mainLoop() {
+    const now = Date.now();
+
+    window.requestAnimationFrame(this.mainLoop.bind(this));
   }
 }
 
