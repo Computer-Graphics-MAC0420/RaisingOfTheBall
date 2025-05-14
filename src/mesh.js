@@ -1,3 +1,5 @@
+import { getModelMatrix } from "./utils";
+
 class Mesh {
   #vertices;
   #colors;
@@ -99,33 +101,7 @@ class Mesh {
   }
 
   getModelMatrix() {
-    const rotX = rotateX(this.#rotation[0]);
-    const rotY = rotateY(this.#rotation[1]);
-    const rotZ = rotateZ(this.#rotation[2]);
-
-    const scale = mat4(
-      this.#scale[0],
-      0,
-      0,
-      0,
-      0,
-      this.#scale[1],
-      0,
-      0,
-      0,
-      0,
-      this.#scale[2],
-      0,
-      0,
-      0,
-      0,
-      1
-    );
-
-    const trans = translate(...this.#translation);
-
-    const model = mult(trans, mult(rotZ, mult(rotY, mult(rotX, scale))));
-    return model;
+    return getModelMatrix(this.#translation, this.#rotation, this.#scale);
   }
 }
 

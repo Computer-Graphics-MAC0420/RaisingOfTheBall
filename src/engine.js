@@ -1,6 +1,7 @@
 import gVertexShaderSrc from "./shaders/vertex.glsl?raw";
 import gFragmentShaderSrc from "./shaders/fragment.glsl?raw";
 import Mesh from "./mesh";
+import Object3D from "./object3d";
 
 const EIXO_X = 0;
 const EIXO_Y = 1;
@@ -40,6 +41,16 @@ const cube = new Mesh({
     1, 0, 3, 3, 2, 1, 2, 3, 7, 7, 6, 2, 3, 0, 4, 4, 7, 3, 6, 5, 1, 1, 2, 6, 4,
     5, 6, 6, 7, 4, 5, 4, 0, 0, 1, 5,
   ],
+});
+
+const obj1 = new Object3D({
+  position: vec3(-0.7, 0, 0),
+  mesh: cube,
+});
+
+const obj2 = new Object3D({
+  position: vec3(0.7, 0, 0),
+  mesh: cube,
 });
 
 class Engine {
@@ -181,6 +192,24 @@ class Engine {
     );
   }
 
+  renderObject(obj) {
+    this.bindMesh(obj.mesh);
+
+    const model = obj.getModelMatrix();
+    this.gl.uniformMatrix4fv(
+      this.shader.uModelView,
+      false,
+      flatten(mult(this.view, model))
+    );
+
+    this.gl.drawElements(
+      this.gl.TRIANGLES,
+      obj.mesh.numV,
+      this.gl.UNSIGNED_BYTE,
+      0
+    );
+  }
+
   render() {
     const gl = this.gl;
 
@@ -193,14 +222,15 @@ class Engine {
     // cube.setScale([scale, scale, scale]);
     // cube.setTranslation({ x: s * 0.3, y: c * 0.3, z: c * 0.3 });
 
-    const rot = cube.getRotation();
-    rot[gCtx.axis] += 2.0;
-    cube.setRotation(rot);
+    // const rot = cube.getRotation();
+    // rot[gCtx.axis] += 2.0;
+    // cube.setRotation(rot);
 
     // Render
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    this.renderMesh(cube);
+    this.renderObject(obj1);
+    this.renderObject(obj2);
 
     window.requestAnimationFrame(this.render.bind(this));
   }
