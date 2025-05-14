@@ -49,6 +49,8 @@ class Engine {
   render() {
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
+    this.bindCamera();
+
     for (const obj of Object.values(this.#objects)) {
       this.renderObject(obj);
     }
@@ -115,10 +117,10 @@ class Engine {
     gl.enableVertexAttribArray(this.#shader.aColor);
 
     // resolve os uniforms
-    this.#shader.uModelView = gl.getUniformLocation(
-      this.#shader.program,
-      "uModelView"
-    );
+
+    this.#shader.uView = gl.getUniformLocation(this.#shader.program, "uView");
+    this.#shader.uModel = gl.getUniformLocation(this.#shader.program, "uModel");
+
     this.#shader.uPerspective = gl.getUniformLocation(
       this.#shader.program,
       "uPerspective"
@@ -173,15 +175,15 @@ class Engine {
     this.bindIndices(mesh.indices);
   }
 
+  bindCamera() {
+    this.gl.uniformMatrix4fv(this.#shader.uView, false, flatten(this.view));
+  }
+
   renderMesh(mesh) {
     this.bindMesh(mesh);
 
     const model = cube.getModelMatrix();
-    this.gl.uniformMatrix4fv(
-      this.#shader.uModelView,
-      false,
-      flatten(mult(this.view, model))
-    );
+    this.gl.uniformMatrix4fv(this.#shader.uModel, false, flatten(model));
 
     this.gl.drawElements(
       this.gl.TRIANGLES,
@@ -195,11 +197,7 @@ class Engine {
     this.bindMesh(obj.mesh);
 
     const model = obj.getModelMatrix();
-    this.gl.uniformMatrix4fv(
-      this.#shader.uModelView,
-      false,
-      flatten(mult(this.view, model))
-    );
+    this.gl.uniformMatrix4fv(this.#shader.uModel, false, flatten(model));
 
     this.gl.drawElements(
       this.gl.TRIANGLES,
