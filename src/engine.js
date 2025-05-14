@@ -1,11 +1,6 @@
 import gVertexShaderSrc from "./shaders/vertex.glsl?raw";
 import gFragmentShaderSrc from "./shaders/fragment.glsl?raw";
-import Mesh from "./mesh";
 import Object3D from "./object3d";
-
-const EIXO_X = 0;
-const EIXO_Y = 1;
-const EIXO_Z = 2;
 
 var gCtx = {
   axis: 0, // eixo rodando
@@ -15,45 +10,6 @@ var gCtx = {
   perspectiva: mat4(), // projection matrix
   cycle: 0,
 };
-
-const cube = new Mesh({
-  vertices: [
-    vec3(-0.5, -0.5, 0.5),
-    vec3(-0.5, 0.5, 0.5),
-    vec3(0.5, 0.5, 0.5),
-    vec3(0.5, -0.5, 0.5),
-    vec3(-0.5, -0.5, -0.5),
-    vec3(-0.5, 0.5, -0.5),
-    vec3(0.5, 0.5, -0.5),
-    vec3(0.5, -0.5, -0.5),
-  ],
-  colors: [
-    vec4(0.0, 0.0, 0.0, 1.0), // black
-    vec4(1.0, 0.0, 0.0, 1.0), // red
-    vec4(1.0, 1.0, 0.0, 1.0), // yellow
-    vec4(0.0, 1.0, 0.0, 1.0), // green
-    vec4(0.0, 0.0, 1.0, 1.0), // blue
-    vec4(1.0, 0.0, 1.0, 1.0), // magenta
-    vec4(1.0, 1.0, 1.0, 1.0), // white
-    vec4(0.0, 1.0, 1.0, 1.0), // cyan
-  ],
-  indices: [
-    1, 0, 3, 3, 2, 1, 2, 3, 7, 7, 6, 2, 3, 0, 4, 4, 7, 3, 6, 5, 1, 1, 2, 6, 4,
-    5, 6, 6, 7, 4, 5, 4, 0, 0, 1, 5,
-  ],
-});
-
-const obj1 = new Object3D({
-  position: vec3(-0.7, 0, 0),
-  velocity: vec3(-0.0001, 0, 0),
-  mesh: cube,
-});
-
-const obj2 = new Object3D({
-  position: vec3(0.7, 0, 0),
-  velocity: vec3(0.0001, 0, 0),
-  mesh: cube,
-});
 
 class Engine {
   #canvas;
@@ -86,17 +42,6 @@ class Engine {
     for (const obj of Object.values(this.#objects)) {
       obj.update(dt);
     }
-
-    // Update animation
-    // gCtx.cycle += 5 * (Math.PI / 180);
-    // const s = Math.sin(gCtx.cycle);
-    // const c = Math.cos(gCtx.cycle);
-    // const scale = s * 0.1 + 1;
-    // cube.setScale([scale, scale, scale]);
-    // cube.setTranslation({ x: s * 0.3, y: c * 0.3, z: c * 0.3 });
-    // const rot = cube.getRotation();
-    // rot[gCtx.axis] += 2.0;
-    // cube.setRotation(rot);
   }
 
   render() {
@@ -139,11 +84,6 @@ class Engine {
     gl.enable(gl.DEPTH_TEST);
 
     await this._initShaders();
-
-    this.addObject(obj1);
-    this.addObject(obj2);
-
-    // this.render();
   }
 
   async _initShaders() {
@@ -226,7 +166,7 @@ class Engine {
     this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.#shader.bufIndices);
     this.gl.bufferData(
       this.gl.ELEMENT_ARRAY_BUFFER,
-      new Uint8Array(cube.indices),
+      new Uint8Array(indices),
       this.gl.STATIC_DRAW
     );
   }
