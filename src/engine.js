@@ -1,5 +1,6 @@
 import gVertexShaderSrc from "./shaders/vertex.glsl?raw";
 import gFragmentShaderSrc from "./shaders/fragment.glsl?raw";
+import Mesh from "./mesh";
 
 const EIXO_X = 0;
 const EIXO_Y = 1;
@@ -11,34 +12,35 @@ var gCtx = {
   pause: false, //
   vista: mat4(), // view matrix, inicialmente identidade
   perspectiva: mat4(), // projection matrix
+  cycle: 0,
 };
 
-var gaPosicoes = [
-  vec3(-0.5, -0.5, 0.5),
-  vec3(-0.5, 0.5, 0.5),
-  vec3(0.5, 0.5, 0.5),
-  vec3(0.5, -0.5, 0.5),
-  vec3(-0.5, -0.5, -0.5),
-  vec3(-0.5, 0.5, -0.5),
-  vec3(0.5, 0.5, -0.5),
-  vec3(0.5, -0.5, -0.5),
-];
-
-var gaCores = [
-  vec4(0.0, 0.0, 0.0, 1.0), // black
-  vec4(1.0, 0.0, 0.0, 1.0), // red
-  vec4(1.0, 1.0, 0.0, 1.0), // yellow
-  vec4(0.0, 1.0, 0.0, 1.0), // green
-  vec4(0.0, 0.0, 1.0, 1.0), // blue
-  vec4(1.0, 0.0, 1.0, 1.0), // magenta
-  vec4(1.0, 1.0, 1.0, 1.0), // white
-  vec4(0.0, 1.0, 1.0, 1.0), // cyan
-];
-
-var gaIndices = [
-  1, 0, 3, 3, 2, 1, 2, 3, 7, 7, 6, 2, 3, 0, 4, 4, 7, 3, 6, 5, 1, 1, 2, 6, 4, 5,
-  6, 6, 7, 4, 5, 4, 0, 0, 1, 5,
-];
+const cube = new Mesh({
+  vertices: [
+    vec3(-0.5, -0.5, 0.5),
+    vec3(-0.5, 0.5, 0.5),
+    vec3(0.5, 0.5, 0.5),
+    vec3(0.5, -0.5, 0.5),
+    vec3(-0.5, -0.5, -0.5),
+    vec3(-0.5, 0.5, -0.5),
+    vec3(0.5, 0.5, -0.5),
+    vec3(0.5, -0.5, -0.5),
+  ],
+  colors: [
+    vec4(0.0, 0.0, 0.0, 1.0), // black
+    vec4(1.0, 0.0, 0.0, 1.0), // red
+    vec4(1.0, 1.0, 0.0, 1.0), // yellow
+    vec4(0.0, 1.0, 0.0, 1.0), // green
+    vec4(0.0, 0.0, 1.0, 1.0), // blue
+    vec4(1.0, 0.0, 1.0, 1.0), // magenta
+    vec4(1.0, 1.0, 1.0, 1.0), // white
+    vec4(0.0, 1.0, 1.0, 1.0), // cyan
+  ],
+  indices: [
+    1, 0, 3, 3, 2, 1, 2, 3, 7, 7, 6, 2, 3, 0, 4, 4, 7, 3, 6, 5, 1, 1, 2, 6, 4,
+    5, 6, 6, 7, 4, 5, 4, 0, 0, 1, 5,
+  ],
+});
 
 class Engine {
   constructor() {
@@ -84,14 +86,14 @@ class Engine {
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.shader.bufIndices);
     gl.bufferData(
       gl.ELEMENT_ARRAY_BUFFER,
-      new Uint8Array(gaIndices),
+      new Uint8Array(cube.indices),
       gl.STATIC_DRAW
     );
 
     // buffer dos vértices
     this.shader.bufVertices = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, this.shader.bufVertices);
-    gl.bufferData(gl.ARRAY_BUFFER, flatten(gaPosicoes), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(cube.vertices), gl.STATIC_DRAW);
 
     this.shader.aPosition = gl.getAttribLocation(
       this.shader.program,
@@ -103,7 +105,7 @@ class Engine {
     // buffer de cores
     this.shader.bufColors = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, this.shader.bufColors);
-    gl.bufferData(gl.ARRAY_BUFFER, flatten(gaCores), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(cube.colors), gl.STATIC_DRAW);
 
     this.shader.aColor = gl.getAttribLocation(this.shader.program, "aColor");
     gl.vertexAttribPointer(this.shader.aColor, 4, gl.FLOAT, false, 0, 0);
@@ -140,19 +142,26 @@ class Engine {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     // modelo muda a cada frame da animação
-    gCtx.theta[gCtx.axis] += 2.0;
+    gCtx.cycle += 5 * (Math.PI / 180);
+    const s = Math.sin(gCtx.cycle);
+    const c = Math.cos(gCtx.cycle);
 
-    let rx = rotateX(gCtx.theta[EIXO_X]);
-    let ry = rotateY(gCtx.theta[EIXO_Y]);
-    let rz = rotateZ(gCtx.theta[EIXO_Z]);
-    let model = mult(rz, mult(ry, rx));
+    const scale = s * 0.1 + 1;
+    cube.setScale([scale, scale, scale]);
+    cube.setTranslation({ x: s * 0.3, y: c * 0.3, z: c * 0.3 });
+
+    const rot = cube.getRotation();
+    rot[gCtx.axis] += 2.0;
+    cube.setRotation(rot);
+
+    let model = cube.getModelMatrix();
 
     gl.uniformMatrix4fv(
       this.shader.uModelView,
       false,
       flatten(mult(this.view, model))
     );
-    gl.drawElements(gl.TRIANGLES, gaIndices.length, gl.UNSIGNED_BYTE, 0);
+    gl.drawElements(gl.TRIANGLES, cube.numV, gl.UNSIGNED_BYTE, 0);
 
     window.requestAnimationFrame(this.render.bind(this));
   }
