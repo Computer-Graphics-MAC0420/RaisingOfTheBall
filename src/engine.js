@@ -2,14 +2,16 @@ import gVertexShaderSrc from "./shaders/vertex.glsl?raw";
 import gFragmentShaderSrc from "./shaders/fragment.glsl?raw";
 import Object3D from "./object3d";
 
-var gCtx = {
-  axis: 0, // eixo rodando
-  theta: [0, 0, 0], // angulos por eixo
-  pause: false, //
-  vista: mat4(), // view matrix, inicialmente identidade
-  perspectiva: mat4(), // projection matrix
-  cycle: 0,
-};
+function createBuffer(gl, bufferType) {
+  const buffer = gl.createBuffer();
+  if (!buffer) {
+    throw new Error("Failed to create buffer");
+  }
+
+  gl.bindBuffer(bufferType, buffer);
+
+  return buffer;
+}
 
 class Engine {
   #canvas;
@@ -95,13 +97,8 @@ class Engine {
     );
     gl.useProgram(this.#shader.program);
 
-    // buffer dos índices dos vértices
-    this.#shader.bufIndices = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.#shader.bufIndices);
-
-    // buffer dos vértices
-    this.#shader.bufVertices = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.#shader.bufVertices);
+    this.#shader.bufIndices = createBuffer(gl, gl.ELEMENT_ARRAY_BUFFER);
+    this.#shader.bufVertices = createBuffer(gl, gl.ARRAY_BUFFER);
 
     this.#shader.aPosition = gl.getAttribLocation(
       this.#shader.program,
@@ -111,8 +108,7 @@ class Engine {
     gl.enableVertexAttribArray(this.#shader.aPosition);
 
     // buffer de cores
-    this.#shader.bufColors = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.#shader.bufColors);
+    this.#shader.bufColors = createBuffer(gl, gl.ARRAY_BUFFER);
 
     this.#shader.aColor = gl.getAttribLocation(this.#shader.program, "aColor");
     gl.vertexAttribPointer(this.#shader.aColor, 4, gl.FLOAT, false, 0, 0);
@@ -130,11 +126,11 @@ class Engine {
 
     // calcula a matriz de transformação perpectiva (fovy, aspect, near, far)
     // que é feita apenas 1 vez
-    gCtx.perspectiva = perspective(60, 1, 0.1, 5);
+    this.perspective = perspective(60, 1, 0.1, 5);
     gl.uniformMatrix4fv(
       this.#shader.uPerspective,
       false,
-      flatten(gCtx.perspectiva)
+      flatten(this.perspective)
     );
 
     // calcula a matriz de transformação da camera, apenas 1 vez
