@@ -2,6 +2,7 @@ import { getModelMatrix } from "./utils";
 
 class Mesh {
   #vertices;
+  #normals;
   #colors;
   #indices;
 
@@ -9,10 +10,11 @@ class Mesh {
   #scale = [1, 1, 1];
   #rotation = [0, 0, 0];
 
-  constructor({ vertices, colors, indices }) {
+  constructor({ vertices, normals, colors, indices }) {
     this.vertices = vertices || [];
     this.colors = colors || [];
     this.indices = indices || [];
+    this.normals = normals || this.calculateNormals();
   }
 
   set vertices(val) {
@@ -32,6 +34,13 @@ class Mesh {
   }
   get indices() {
     return this.#indices;
+  }
+
+  set normals(val) {
+    this.#normals = val;
+  }
+  get normals() {
+    return this.#normals;
   }
 
   get numV() {
@@ -98,6 +107,39 @@ class Mesh {
         this.#rotation[2] = z;
       }
     }
+  }
+
+  // Método para calcular normais por vértice se não forem fornecidas
+  calculateNormals() {
+    if (!this.vertices.length || !this.indices.length) return [];
+
+    const normals = Array(this.vertices.length).fill(vec3(0, 0, 0));
+
+    // Para cada face (triângulo)
+    for (let i = 0; i < this.indices.length; i += 3) {
+      const idx1 = this.indices[i];
+      const idx2 = this.indices[i + 1];
+      const idx3 = this.indices[i + 2];
+
+      const v1 = this.vertices[idx1];
+      const v2 = this.vertices[idx2];
+      const v3 = this.vertices[idx3];
+
+      // Calcular vetores da face
+      const e1 = subtract(v2, v1);
+      const e2 = subtract(v3, v1);
+
+      // Produto vetorial para obter a normal da face
+      const normal = normalize(cross(e1, e2));
+
+      // Adicionar a normal a cada vértice da face
+      normals[idx1] = add(normals[idx1], normal);
+      normals[idx2] = add(normals[idx2], normal);
+      normals[idx3] = add(normals[idx3], normal);
+    }
+
+    // Normalizar todas as normais
+    return normals.map((n) => normalize(n));
   }
 
   getModelMatrix() {
