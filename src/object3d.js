@@ -6,13 +6,19 @@ class Object3D {
   #rotation = vec3(0, 0, 0);
   #scale = vec3(1, 1, 1);
   #velocity = vec3(0, 0, 0);
+  #rotationSpeed = vec3(0, 0, 0);
+
   #mesh;
 
-  constructor({ position, velocity, mesh }) {
+  constructor({ position, velocity, rotationSpeed, mesh }) {
     this.position = position;
 
     if (velocity) {
       this.velocity = velocity;
+    }
+
+    if (rotationSpeed) {
+      this.rotationSpeed = rotationSpeed;
     }
 
     this.mesh = mesh;
@@ -34,6 +40,14 @@ class Object3D {
     this.#velocity = value;
   }
 
+  get rotationSpeed() {
+    return this.#rotationSpeed;
+  }
+
+  set rotationSpeed(value) {
+    this.#rotationSpeed = value;
+  }
+
   get mesh() {
     return this.#mesh;
   }
@@ -47,6 +61,14 @@ class Object3D {
 
   update(dt) {
     this.#position = add(this.#position, mult(dt, this.#velocity));
+    // Update rotation and normalize to keep values between 0 and 2π
+    this.#rotation = add(this.#rotation, mult(dt, this.#rotationSpeed));
+    // Normalize each rotation component
+    this.#rotation = vec3(
+      this.#rotation[0] % 360,
+      this.#rotation[1] % 360,
+      this.#rotation[2] % 360
+    );
   }
 
   getModelMatrix() {
