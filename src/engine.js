@@ -84,16 +84,10 @@ class Engine {
     // buffer dos índices dos vértices
     this.shader.bufIndices = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.shader.bufIndices);
-    gl.bufferData(
-      gl.ELEMENT_ARRAY_BUFFER,
-      new Uint8Array(cube.indices),
-      gl.STATIC_DRAW
-    );
 
     // buffer dos vértices
     this.shader.bufVertices = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, this.shader.bufVertices);
-    gl.bufferData(gl.ARRAY_BUFFER, flatten(cube.vertices), gl.STATIC_DRAW);
 
     this.shader.aPosition = gl.getAttribLocation(
       this.shader.program,
@@ -105,7 +99,6 @@ class Engine {
     // buffer de cores
     this.shader.bufColors = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, this.shader.bufColors);
-    gl.bufferData(gl.ARRAY_BUFFER, flatten(cube.colors), gl.STATIC_DRAW);
 
     this.shader.aColor = gl.getAttribLocation(this.shader.program, "aColor");
     gl.vertexAttribPointer(this.shader.aColor, 4, gl.FLOAT, false, 0, 0);
@@ -137,31 +130,77 @@ class Engine {
     this.view = lookAt(eye, at, up);
   }
 
+  bindVertices(vertices) {
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.shader.bufVertices);
+    this.gl.bufferData(
+      this.gl.ARRAY_BUFFER,
+      flatten(vertices),
+      this.gl.STATIC_DRAW
+    );
+  }
+
+  bindColors(colors) {
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.shader.bufColors);
+    this.gl.bufferData(
+      this.gl.ARRAY_BUFFER,
+      flatten(colors),
+      this.gl.STATIC_DRAW
+    );
+  }
+
+  bindIndices(indices) {
+    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.shader.bufIndices);
+    this.gl.bufferData(
+      this.gl.ELEMENT_ARRAY_BUFFER,
+      new Uint8Array(cube.indices),
+      this.gl.STATIC_DRAW
+    );
+  }
+
+  bindMesh(mesh) {
+    this.bindVertices(mesh.vertices);
+    this.bindColors(mesh.colors);
+    this.bindIndices(mesh.indices);
+  }
+
+  renderMesh(mesh) {
+    this.bindMesh(mesh);
+
+    const model = cube.getModelMatrix();
+    this.gl.uniformMatrix4fv(
+      this.shader.uModelView,
+      false,
+      flatten(mult(this.view, model))
+    );
+
+    this.gl.drawElements(
+      this.gl.TRIANGLES,
+      mesh.numV,
+      this.gl.UNSIGNED_BYTE,
+      0
+    );
+  }
+
   render() {
     const gl = this.gl;
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    // modelo muda a cada frame da animação
+    // Update animation
     gCtx.cycle += 5 * (Math.PI / 180);
-    const s = Math.sin(gCtx.cycle);
-    const c = Math.cos(gCtx.cycle);
+    // const s = Math.sin(gCtx.cycle);
+    // const c = Math.cos(gCtx.cycle);
 
-    const scale = s * 0.1 + 1;
-    cube.setScale([scale, scale, scale]);
-    cube.setTranslation({ x: s * 0.3, y: c * 0.3, z: c * 0.3 });
+    // const scale = s * 0.1 + 1;
+    // cube.setScale([scale, scale, scale]);
+    // cube.setTranslation({ x: s * 0.3, y: c * 0.3, z: c * 0.3 });
 
     const rot = cube.getRotation();
     rot[gCtx.axis] += 2.0;
     cube.setRotation(rot);
 
-    let model = cube.getModelMatrix();
+    // Render
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    gl.uniformMatrix4fv(
-      this.shader.uModelView,
-      false,
-      flatten(mult(this.view, model))
-    );
-    gl.drawElements(gl.TRIANGLES, cube.numV, gl.UNSIGNED_BYTE, 0);
+    this.renderMesh(cube);
 
     window.requestAnimationFrame(this.render.bind(this));
   }
