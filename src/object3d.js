@@ -5,10 +5,16 @@ class Object3D {
   #position = vec3(0, 0, 0);
   #rotation = vec3(0, 0, 0);
   #scale = vec3(1, 1, 1);
+  #velocity = vec3(0, 0, 0);
   #mesh;
 
-  constructor({ position, mesh }) {
+  constructor({ position, velocity, mesh }) {
     this.position = position;
+
+    if (velocity) {
+      this.velocity = velocity;
+    }
+
     this.mesh = mesh;
   }
 
@@ -20,6 +26,14 @@ class Object3D {
     this.#position = value;
   }
 
+  get velocity() {
+    return this.#velocity;
+  }
+
+  set velocity(value) {
+    this.#velocity = value;
+  }
+
   get mesh() {
     return this.#mesh;
   }
@@ -29,6 +43,10 @@ class Object3D {
       throw new Error("mesh must be an instance of Mesh");
     }
     this.#mesh = value;
+  }
+
+  update(dt) {
+    this.#position = add(this.#position, mult(dt, this.#velocity));
   }
 
   getModelMatrix() {

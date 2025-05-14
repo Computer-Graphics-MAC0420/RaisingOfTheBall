@@ -45,11 +45,13 @@ const cube = new Mesh({
 
 const obj1 = new Object3D({
   position: vec3(-0.7, 0, 0),
+  velocity: vec3(-0.0001, 0, 0),
   mesh: cube,
 });
 
 const obj2 = new Object3D({
   position: vec3(0.7, 0, 0),
+  velocity: vec3(0.0001, 0, 0),
   mesh: cube,
 });
 
@@ -58,9 +60,51 @@ class Engine {
   #objects = {};
   #shader = {};
   #background = [0.0, 0.0, 0.0, 1.0];
+  #lastTime = 0;
 
   constructor(canvasID = "canvas") {
     this._initComponents(canvasID);
+  }
+
+  start() {
+    this.#lastTime = Date.now();
+    this.mainLoop();
+  }
+
+  mainLoop() {
+    const now = Date.now();
+    const dt = now - this.#lastTime; // milliseconds
+    this.#lastTime = now;
+
+    this.update(dt);
+    this.render();
+
+    window.requestAnimationFrame(this.mainLoop.bind(this));
+  }
+
+  update(dt) {
+    for (const obj of Object.values(this.#objects)) {
+      obj.update(dt);
+    }
+
+    // Update animation
+    // gCtx.cycle += 5 * (Math.PI / 180);
+    // const s = Math.sin(gCtx.cycle);
+    // const c = Math.cos(gCtx.cycle);
+    // const scale = s * 0.1 + 1;
+    // cube.setScale([scale, scale, scale]);
+    // cube.setTranslation({ x: s * 0.3, y: c * 0.3, z: c * 0.3 });
+    // const rot = cube.getRotation();
+    // rot[gCtx.axis] += 2.0;
+    // cube.setRotation(rot);
+  }
+
+  render() {
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+
+    for (const obj of Object.values(this.#objects)) {
+      this.renderObject(obj);
+    }
   }
 
   _initComponents(canvasID) {
@@ -99,7 +143,7 @@ class Engine {
     this.addObject(obj1);
     this.addObject(obj2);
 
-    this.render();
+    // this.render();
   }
 
   async _initShaders() {
@@ -256,40 +300,6 @@ class Engine {
 
   removeObject(id) {
     delete this.#objects[id];
-  }
-
-  update(dt) {}
-
-  render() {
-    const gl = this.gl;
-
-    // Update animation
-    gCtx.cycle += 5 * (Math.PI / 180);
-    // const s = Math.sin(gCtx.cycle);
-    // const c = Math.cos(gCtx.cycle);
-
-    // const scale = s * 0.1 + 1;
-    // cube.setScale([scale, scale, scale]);
-    // cube.setTranslation({ x: s * 0.3, y: c * 0.3, z: c * 0.3 });
-
-    // const rot = cube.getRotation();
-    // rot[gCtx.axis] += 2.0;
-    // cube.setRotation(rot);
-
-    // Render
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-    for (const obj of Object.values(this.#objects)) {
-      this.renderObject(obj);
-    }
-
-    window.requestAnimationFrame(this.render.bind(this));
-  }
-
-  mainLoop() {
-    const now = Date.now();
-
-    window.requestAnimationFrame(this.mainLoop.bind(this));
   }
 }
 
