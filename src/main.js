@@ -34,7 +34,7 @@ const sphere = new Object3D({
   rotationSpeed: vec3(0, 0, 0),
   shader: "light",
   mesh: new Sphere({
-    density: 0,
+    density: 2,
   }),
 });
 
