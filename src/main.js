@@ -120,3 +120,7 @@ function handleMovement(dt) {
   }
   camera.lookTo(hAngle, vAngle);
 }
+
+window.addEventListener("resize", () => {
+  engine.resize(window.innerWidth, window.innerHeight);
+});

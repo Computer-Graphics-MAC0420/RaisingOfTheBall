@@ -113,13 +113,6 @@ class Engine {
     }
 
     console.log("Canvas: ", this.#canvas.width, this.#canvas.height);
-    this.#canvas.width = window.innerWidth;
-    this.#canvas.height = window.innerHeight;
-    window.addEventListener("resize", () => {
-      this.#canvas.width = window.innerWidth;
-      this.#canvas.height = window.innerHeight;
-      this.gl.viewport(0, 0, this.#canvas.width, this.#canvas.height);
-    });
 
     const gl = this.#canvas.getContext("webgl2");
     if (!gl) {
@@ -130,15 +123,24 @@ class Engine {
     this.gl = gl;
   }
 
+  resize(width, height) {
+    this.#canvas.width = window.innerWidth;
+    this.#canvas.height = window.innerHeight;
+    this.gl.viewport(0, 0, this.#canvas.width, this.#canvas.height);
+    this.camera.setResolution(width, height);
+  }
+
   async init() {
     const gl = this.gl;
-    gl.viewport(0, 0, this.#canvas.width, this.#canvas.height);
+
+    this.#camera = new Camera();
+    this.#light = new Light();
+
+    this.resize(window.innerWidth, window.innerHeight);
     gl.clearColor(...this.#background);
     gl.enable(gl.DEPTH_TEST);
 
-    this.perspective = perspective(60, 1, 0.1, 5);
-    this.#camera = new Camera();
-    this.#light = new Light();
+    // calcula a matriz de transformação perpectiva (fovy, aspect, near, far)
 
     await this._initShaders();
   }
@@ -166,21 +168,6 @@ class Engine {
 
     // Define como shader ativo
     this.setActiveShader("default");
-
-    // Calcula a matriz de transformação perpectiva (fovy, aspect, near, far)
-    // que é feita apenas 1 vez
-    this.perspective = perspective(60, 1, 0.1, 50);
-    this.#activeShader.setUniformMatrix4fv(
-      "uPerspective",
-      false,
-      flatten(this.perspective)
-    );
-
-    // Calcula a matriz de transformação da camera, apenas 1 vez
-    let eye = vec3(1.75, 1.75, 1.75);
-    let at = vec3(0, 0, 0);
-    let up = vec3(0, 1, 0);
-    this.view = lookAt(eye, at, up);
   }
 
   bindVertices(vertices) {
@@ -227,9 +214,15 @@ class Engine {
     if (!this.#activeShader) {
       throw new Error("No active shader");
     }
-
     const view = this.#camera.getViewMatrix();
+    const projection = this.#camera.getProjectionMatrix();
+
     this.#activeShader.setUniformMatrix4fv("uView", false, flatten(view));
+    this.#activeShader.setUniformMatrix4fv(
+      "uPerspective",
+      false,
+      flatten(projection)
+    );
   }
 
   renderMesh(mesh) {
@@ -269,11 +262,6 @@ class Engine {
 
     this.#activeShader.setUniform3fv("uLightPos", this.#light.position);
     this.bindCamera();
-    this.#activeShader.setUniformMatrix4fv(
-      "uPerspective",
-      false,
-      flatten(this.perspective)
-    );
 
     this.bindMesh(obj.mesh);
 

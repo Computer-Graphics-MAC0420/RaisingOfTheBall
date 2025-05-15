@@ -3,6 +3,12 @@ class Camera {
   #at;
   #up;
 
+  #fovy = 60;
+  #aspect = 1;
+  #near = 0.1;
+  #far = 50;
+  // calcula a matriz de transformação perpectiva (fovy, aspect, near, far)
+
   get position() {
     return this.#eye;
   }
@@ -59,8 +65,16 @@ class Camera {
     this.moveUp(-dist);
   }
 
+  setResolution(width, height) {
+    this.#aspect = width / height;
+  }
+
   getViewMatrix() {
     return lookAt(this.#eye, this.#at, this.#up);
+  }
+
+  getProjectionMatrix() {
+    return perspective(this.#fovy, this.#aspect, this.#near, this.#far);
   }
 
   lookTo(hAngle, vAngle) {
