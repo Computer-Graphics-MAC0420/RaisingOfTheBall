@@ -1,9 +1,7 @@
-import gVertexShaderSrc from "./shaders/vertex.glsl?raw";
-import gFragmentShaderSrc from "./shaders/fragment.glsl?raw";
-import redFragmentShaderSrc from "./shaders/fragment.red.glsl?raw";
 import Object3D from "./object3d";
 import Shader from "./shader";
 import AvailableShaders from "./shaders";
+import Camera from "./camera";
 
 class Engine {
   #canvas;
@@ -12,6 +10,13 @@ class Engine {
   #activeShader = null;
   #background = [0.0, 0.0, 0.0, 1.0];
   #lastTime = 0;
+  #camera;
+
+  onUpdate;
+
+  get camera() {
+    return this.#camera;
+  }
 
   constructor(canvasID = "canvas") {
     this._initComponents(canvasID);
@@ -34,6 +39,10 @@ class Engine {
   }
 
   update(dt) {
+    if (this.onUpdate) {
+      this.onUpdate(dt);
+    }
+
     for (const obj of Object.values(this.#objects)) {
       obj.update(dt);
     }
@@ -79,6 +88,7 @@ class Engine {
     gl.enable(gl.DEPTH_TEST);
 
     this.perspective = perspective(60, 1, 0.1, 5);
+    this.#camera = new Camera();
 
     await this._initShaders();
   }
@@ -104,7 +114,6 @@ class Engine {
 
     // Define como shader ativo
     this.setActiveShader("default");
-    this.setActiveShader("red");
 
     // Calcula a matriz de transformação perpectiva (fovy, aspect, near, far)
     // que é feita apenas 1 vez
@@ -159,7 +168,8 @@ class Engine {
       throw new Error("No active shader");
     }
 
-    this.#activeShader.setUniformMatrix4fv("uView", false, flatten(this.view));
+    const view = this.#camera.getViewMatrix();
+    this.#activeShader.setUniformMatrix4fv("uView", false, flatten(view));
   }
 
   renderMesh(mesh) {

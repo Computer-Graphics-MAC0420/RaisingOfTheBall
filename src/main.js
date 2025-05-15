@@ -3,6 +3,11 @@ import Object3D from "./object3d";
 import "./style.css";
 
 import { Cube } from "./meshes";
+import { isKeyPressed } from "./keyboard";
+
+const CAMERA_SPEED = 0.001;
+let hAngle = 0;
+let vAngle = 0;
 
 const obj1 = new Object3D({
   position: vec3(-0.7, 0, 0),
@@ -29,5 +34,45 @@ engine.init().then(() => {
   engine.addObject(obj1);
   engine.addObject(obj2);
 
+  engine.onUpdate = (dt) => {
+    handleMovement(dt);
+  };
+
   engine.start();
 });
+
+function handleMovement(dt) {
+  const camera = engine.camera;
+
+  if (isKeyPressed("w")) {
+    camera.moveForward(CAMERA_SPEED * dt);
+  }
+  if (isKeyPressed("s")) {
+    camera.moveBackward(CAMERA_SPEED * dt);
+  }
+  if (isKeyPressed("a")) {
+    camera.moveLeft(CAMERA_SPEED * dt);
+  }
+  if (isKeyPressed("d")) {
+    camera.moveRight(CAMERA_SPEED * dt);
+  }
+  if (isKeyPressed("q")) {
+    camera.moveUp(CAMERA_SPEED * dt);
+  }
+  if (isKeyPressed("e")) {
+    camera.moveDown(CAMERA_SPEED * dt);
+  }
+  if (isKeyPressed("ArrowUp")) {
+    vAngle += 0.01;
+  }
+  if (isKeyPressed("ArrowDown")) {
+    vAngle -= 0.01;
+  }
+  if (isKeyPressed("ArrowLeft")) {
+    hAngle -= 0.01;
+  }
+  if (isKeyPressed("ArrowRight")) {
+    hAngle += 0.01;
+  }
+  camera.lookTo(hAngle, vAngle);
+}
