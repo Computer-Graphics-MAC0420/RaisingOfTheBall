@@ -1,22 +1,14 @@
 import gVertexShaderSrc from "./shaders/vertex.glsl?raw";
 import gFragmentShaderSrc from "./shaders/fragment.glsl?raw";
+import redFragmentShaderSrc from "./shaders/fragment.red.glsl?raw";
 import Object3D from "./object3d";
-
-function createBuffer(gl, bufferType) {
-  const buffer = gl.createBuffer();
-  if (!buffer) {
-    throw new Error("Failed to create buffer");
-  }
-
-  gl.bindBuffer(bufferType, buffer);
-
-  return buffer;
-}
+import Shader from "./shader";
 
 class Engine {
   #canvas;
   #objects = {};
-  #shader = {};
+  #shaders = {};
+  #activeShader = null;
   #background = [0.0, 0.0, 0.0, 1.0];
   #lastTime = 0;
 
@@ -91,51 +83,37 @@ class Engine {
   }
 
   async _initShaders() {
-    const gl = this.gl;
-    this.#shader.program = makeProgram(
-      gl,
-      gVertexShaderSrc,
-      gFragmentShaderSrc
-    );
-    gl.useProgram(this.#shader.program);
+    this.#shaders = {
+      default: new Shader(this.gl, gVertexShaderSrc, gFragmentShaderSrc),
+      red: new Shader(this.gl, gVertexShaderSrc, redFragmentShaderSrc),
+    };
 
-    this.#shader.bufIndices = createBuffer(gl, gl.ELEMENT_ARRAY_BUFFER);
-    this.#shader.bufVertices = createBuffer(gl, gl.ARRAY_BUFFER);
+    const defaultShader = this.#shaders["default"];
 
-    this.#shader.aPosition = gl.getAttribLocation(
-      this.#shader.program,
-      "aPosition"
-    );
-    gl.vertexAttribPointer(this.#shader.aPosition, 3, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(this.#shader.aPosition);
+    for (const shader of Object.values(this.#shaders)) {
+      // Define os atributos
+      shader.defineAttribute("aPosition", 3);
+      shader.defineAttribute("aColor", 4);
 
-    // buffer de cores
-    this.#shader.bufColors = createBuffer(gl, gl.ARRAY_BUFFER);
+      shader.defineUniform("uView");
+      shader.defineUniform("uModel");
+      shader.defineUniform("uPerspective");
+    }
 
-    this.#shader.aColor = gl.getAttribLocation(this.#shader.program, "aColor");
-    gl.vertexAttribPointer(this.#shader.aColor, 4, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(this.#shader.aColor);
+    // Define como shader ativo
+    this.setActiveShader("default");
+    this.setActiveShader("red");
 
-    // resolve os uniforms
-
-    this.#shader.uView = gl.getUniformLocation(this.#shader.program, "uView");
-    this.#shader.uModel = gl.getUniformLocation(this.#shader.program, "uModel");
-
-    this.#shader.uPerspective = gl.getUniformLocation(
-      this.#shader.program,
-      "uPerspective"
-    );
-
-    // calcula a matriz de transformação perpectiva (fovy, aspect, near, far)
+    // Calcula a matriz de transformação perpectiva (fovy, aspect, near, far)
     // que é feita apenas 1 vez
     this.perspective = perspective(60, 1, 0.1, 5);
-    gl.uniformMatrix4fv(
-      this.#shader.uPerspective,
+    this.#activeShader.setUniformMatrix4fv(
+      "uPerspective",
       false,
       flatten(this.perspective)
     );
 
-    // calcula a matriz de transformação da camera, apenas 1 vez
+    // Calcula a matriz de transformação da camera, apenas 1 vez
     let eye = vec3(1.75, 1.75, 1.75);
     let at = vec3(0, 0, 0);
     let up = vec3(0, 1, 0);
@@ -143,47 +121,54 @@ class Engine {
   }
 
   bindVertices(vertices) {
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.#shader.bufVertices);
-    this.gl.bufferData(
-      this.gl.ARRAY_BUFFER,
-      flatten(vertices),
-      this.gl.STATIC_DRAW
-    );
+    if (!this.#activeShader) {
+      throw new Error("No active shader");
+    }
+
+    this.#activeShader.bindVertices(vertices);
   }
 
   bindColors(colors) {
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.#shader.bufColors);
-    this.gl.bufferData(
-      this.gl.ARRAY_BUFFER,
-      flatten(colors),
-      this.gl.STATIC_DRAW
-    );
+    if (!this.#activeShader) {
+      throw new Error("No active shader");
+    }
+
+    this.#activeShader.bindColors(colors);
   }
 
   bindIndices(indices) {
-    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.#shader.bufIndices);
-    this.gl.bufferData(
-      this.gl.ELEMENT_ARRAY_BUFFER,
-      new Uint8Array(indices),
-      this.gl.STATIC_DRAW
-    );
+    if (!this.#activeShader) {
+      throw new Error("No active shader");
+    }
+
+    this.#activeShader.bindIndices(indices);
   }
 
   bindMesh(mesh) {
-    this.bindVertices(mesh.vertices);
-    this.bindColors(mesh.colors);
-    this.bindIndices(mesh.indices);
+    if (!this.#activeShader) {
+      throw new Error("No active shader");
+    }
+
+    this.#activeShader.bindMesh(mesh);
   }
 
   bindCamera() {
-    this.gl.uniformMatrix4fv(this.#shader.uView, false, flatten(this.view));
+    if (!this.#activeShader) {
+      throw new Error("No active shader");
+    }
+
+    this.#activeShader.setUniformMatrix4fv("uView", false, flatten(this.view));
   }
 
   renderMesh(mesh) {
+    if (!this.#activeShader) {
+      throw new Error("No active shader");
+    }
+
     this.bindMesh(mesh);
 
-    const model = cube.getModelMatrix();
-    this.gl.uniformMatrix4fv(this.#shader.uModel, false, flatten(model));
+    const model = mesh.getModelMatrix();
+    this.#activeShader.setUniformMatrix4fv("uModel", false, flatten(model));
 
     this.gl.drawElements(
       this.gl.TRIANGLES,
@@ -194,10 +179,14 @@ class Engine {
   }
 
   renderObject(obj) {
+    if (!this.#activeShader) {
+      throw new Error("No active shader");
+    }
+
     this.bindMesh(obj.mesh);
 
     const model = obj.getModelMatrix();
-    this.gl.uniformMatrix4fv(this.#shader.uModel, false, flatten(model));
+    this.#activeShader.setUniformMatrix4fv("uModel", false, flatten(model));
 
     this.gl.drawElements(
       this.gl.TRIANGLES,
@@ -234,6 +223,42 @@ class Engine {
 
   removeObject(id) {
     delete this.#objects[id];
+  }
+
+  /**
+   * Define o shader ativo
+   * @param {string} shaderName - Nome do shader a ser ativado
+   */
+  setActiveShader(shaderName) {
+    const shader = this.#shaders[shaderName];
+    if (!shader) {
+      throw new Error(`Shader ${shaderName} não encontrado`);
+    }
+
+    this.#activeShader = shader;
+    shader.use();
+  }
+
+  /**
+   * Adiciona um novo shader
+   * @param {string} name - Nome do shader
+   * @param {Shader} shader - Instância do shader
+   */
+  addShader(name, shader) {
+    if (!(shader instanceof Shader)) {
+      throw new Error("shader deve ser uma instância de Shader");
+    }
+
+    this.#shaders[name] = shader;
+  }
+
+  /**
+   * Obtém um shader pelo nome
+   * @param {string} name - Nome do shader
+   * @returns {Shader} - Instância do shader ou undefined se não existir
+   */
+  getShader(name) {
+    return this.#shaders[name];
   }
 }
 
