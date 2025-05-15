@@ -192,6 +192,21 @@ class Shader {
   }
 
   /**
+   * Define o valor de um uniform do tipo vetor 3D
+   * @param {string} name - Nome do uniform
+   * @param {Float32Array|Array} value - Valor do vetor (3 componentes)
+   */
+  setUniform3fv(name, value) {
+    const location = this.#uniforms[name];
+    if (location === undefined) {
+      console.warn(`Uniform '${name}' não foi definido`);
+      return;
+    }
+
+    this.#gl.uniform3fv(location, value);
+  }
+
+  /**
    * Vincula vértices ao buffer
    * @param {Array} vertices - Array de vértices
    */

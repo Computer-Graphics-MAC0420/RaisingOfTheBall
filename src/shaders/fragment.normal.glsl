@@ -2,7 +2,6 @@
 
 precision highp float;
 
-in vec4 vColor;
 out vec4 outColor;
 
 in vec3 vvNormal; // normal não interpolada
@@ -12,11 +11,11 @@ bool mode = false; // true -> normal interpolada, false -> normal não interpola
 
 void main() {
   vec3 norm;
-  if (mode) {
+  if(mode) {
     norm = vNormal;
   } else {
     norm = vvNormal;
   }
-  
+
   outColor = vec4(abs(norm.x), abs(norm.y), abs(norm.z), 1); // cor da normal
 }

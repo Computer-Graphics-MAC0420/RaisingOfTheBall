@@ -63,6 +63,10 @@ class Engine {
     return this.#camera;
   }
 
+  get light() {
+    return this.#light;
+  }
+
   constructor(canvasID = "canvas") {
     this._initComponents(canvasID);
   }
@@ -157,6 +161,7 @@ class Engine {
       shader.defineUniform("uView");
       shader.defineUniform("uModel");
       shader.defineUniform("uPerspective");
+      shader.defineUniform("uLightPos");
     }
 
     // Define como shader ativo
@@ -262,6 +267,7 @@ class Engine {
       throw new Error("No active shader");
     }
 
+    this.#activeShader.setUniform3fv("uLightPos", this.#light.position);
     this.bindCamera();
     this.#activeShader.setUniformMatrix4fv(
       "uPerspective",

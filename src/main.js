@@ -6,13 +6,15 @@ import { Cube, Sphere } from "./meshes";
 import { isKeyPressed } from "./keyboard";
 
 const CAMERA_SPEED = 0.001;
+const lightPos = vec3(-4, 0, 2);
+
 let hAngle = 0;
 let vAngle = 0;
 
 const obj1 = new Object3D({
   position: vec3(-0.7, 0, 0),
   rotationSpeed: vec3(0.1, 0, 0),
-  shader: "normal",
+  shader: "light",
   mesh: new Cube({
     size: 1.5,
   }),
@@ -30,8 +32,20 @@ const obj2 = new Object3D({
 const sphere = new Object3D({
   position: vec3(-0.7, 1.8, 0),
   rotationSpeed: vec3(0, 0, 0),
-  shader: "normal",
-  mesh: new Sphere(),
+  shader: "light",
+  mesh: new Sphere({
+    density: 0,
+  }),
+});
+
+const lightGismo = new Object3D({
+  position: lightPos,
+  rotationSpeed: vec3(0, 0, 0),
+  shader: "default",
+  mesh: new Sphere({
+    density: 0,
+    size: 0.1,
+  }),
 });
 
 const engine = new Engine();
@@ -40,11 +54,12 @@ engine.init().then(() => {
   console.log("Engine initialized");
 
   engine.camera.position = vec3(-5, 0, 0);
-  // engine.camera.lookAt(vec3(0, 0, 3));
+  engine.light.position = lightPos;
 
   engine.addObject(obj1);
   engine.addObject(obj2);
   engine.addObject(sphere);
+  engine.addObject(lightGismo);
 
   window.addEventListener("keydown", (event) => {
     if (event.key === " ") {
