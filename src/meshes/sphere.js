@@ -75,24 +75,14 @@ function getNormal(a, b, c) {
 }
 
 class Sphere extends Mesh {
-  constructor({ density = 3, color = vec4(0.8, 0.8, 0.8, 1) } = {}) {
+  constructor({ density = 2, color = vec4(0.8, 0.8, 0.8, 1) } = {}) {
     const [vertices, normals] = crieEsfera(density);
 
     const colors = Array(vertices.length)
       .fill(0)
       .map(() => vec4(color));
-    const indices = Array(vertices.length)
-      .fill(0)
-      .map((_, i) => i);
 
-    console.log("Vertices: ", vertices);
-    console.log("Normais: ", normals);
-    console.log("Colors: ", colors);
-    console.log("indices: ", indices);
-
-    super({ vertices, colors, normals, indices });
-
-    console.log(this.numV);
+    super({ vertices, colors, normals, useIndices: false });
   }
 }
 

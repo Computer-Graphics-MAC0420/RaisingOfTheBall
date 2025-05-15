@@ -5,46 +5,42 @@ class Mesh {
   #normals;
   #colors;
   #indices;
+  #useIndices = true;
 
   #translation = [0, 0, 0];
   #scale = [1, 1, 1];
   #rotation = [0, 0, 0];
 
-  constructor({ vertices, normals, colors, indices }) {
-    this.vertices = vertices || [];
-    this.colors = colors || [];
-    this.indices = indices || [];
-    this.normals = normals || this.calculateNormals();
+  constructor({ vertices, normals, colors, indices, useIndices = true }) {
+    this.#vertices = vertices || [];
+    this.#colors = colors || [];
+    this.#indices = indices || [];
+    this.#normals = normals || this.calculateNormals();
+    this.#useIndices = useIndices;
   }
 
-  set vertices(val) {
-    this.#vertices = val;
-  }
   get vertices() {
     return this.#vertices;
   }
-  set colors(val) {
-    this.#colors = val;
-  }
+
   get colors() {
     return this.#colors;
   }
-  set indices(val) {
-    this.#indices = val;
-  }
+
   get indices() {
     return this.#indices;
   }
 
-  set normals(val) {
-    this.#normals = val;
-  }
   get normals() {
     return this.#normals;
   }
 
   get numV() {
     return this.#indices.length;
+  }
+
+  get useIndices() {
+    return this.#useIndices;
   }
 
   setTranslation(t) {

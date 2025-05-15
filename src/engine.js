@@ -237,12 +237,18 @@ class Engine {
     const model = mesh.getModelMatrix();
     this.#activeShader.setUniformMatrix4fv("uModel", false, flatten(model));
 
-    this.gl.drawElements(
-      this.gl.TRIANGLES,
-      mesh.numV,
-      this.gl.UNSIGNED_SHORT,
-      0
-    );
+    if (mesh.useIndices) {
+      // Renderiza usando índices
+      this.gl.drawElements(
+        this.gl.TRIANGLES,
+        mesh.numV,
+        this.gl.UNSIGNED_SHORT,
+        0
+      );
+    } else {
+      // Renderiza sem usar índices
+      this.gl.drawArrays(this.gl.TRIANGLES, 0, mesh.vertices.length);
+    }
   }
 
   renderObject(obj) {
@@ -268,12 +274,18 @@ class Engine {
     const model = obj.getModelMatrix();
     this.#activeShader.setUniformMatrix4fv("uModel", false, flatten(model));
 
-    this.gl.drawElements(
-      this.gl.TRIANGLES,
-      obj.mesh.numV,
-      this.gl.UNSIGNED_SHORT,
-      0
-    );
+    if (obj.mesh.useIndices) {
+      // Renderiza usando índices
+      this.gl.drawElements(
+        this.gl.TRIANGLES,
+        obj.mesh.numV,
+        this.gl.UNSIGNED_SHORT,
+        0
+      );
+    } else {
+      // Renderiza sem usar índices
+      this.gl.drawArrays(this.gl.TRIANGLES, 0, obj.mesh.vertices.length);
+    }
   }
 
   getUniqueID() {
