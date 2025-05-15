@@ -2,7 +2,7 @@ import Engine from "./engine";
 import Object3D from "./object3d";
 import "./style.css";
 
-import { Cube, Sphere } from "./meshes";
+import { Cube, Plain, Sphere } from "./meshes";
 import { isKeyPressed } from "./keyboard";
 
 const CAMERA_SPEED = 0.001;
@@ -48,6 +48,16 @@ const lightGismo = new Object3D({
   }),
 });
 
+const floor = new Object3D({
+  position: vec3(0, -1, 0),
+  shader: "light",
+  mesh: new Plain({
+    width: 10,
+    height: 10,
+    color: vec4(0.5, 0.5, 0.5, 1),
+  }),
+});
+
 const engine = new Engine();
 
 engine.init().then(() => {
@@ -60,6 +70,7 @@ engine.init().then(() => {
   engine.addObject(obj2);
   engine.addObject(sphere);
   engine.addObject(lightGismo);
+  engine.addObject(floor);
 
   window.addEventListener("keydown", (event) => {
     if (event.key === " ") {
