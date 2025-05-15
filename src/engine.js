@@ -240,7 +240,7 @@ class Engine {
     this.gl.drawElements(
       this.gl.TRIANGLES,
       mesh.numV,
-      this.gl.UNSIGNED_BYTE,
+      this.gl.UNSIGNED_SHORT,
       0
     );
   }
@@ -271,7 +271,7 @@ class Engine {
     this.gl.drawElements(
       this.gl.TRIANGLES,
       obj.mesh.numV,
-      this.gl.UNSIGNED_BYTE,
+      this.gl.UNSIGNED_SHORT,
       0
     );
   }

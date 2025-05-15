@@ -2,7 +2,7 @@ import Engine from "./engine";
 import Object3D from "./object3d";
 import "./style.css";
 
-import { Cube } from "./meshes";
+import { Cube, Sphere } from "./meshes";
 import { isKeyPressed } from "./keyboard";
 
 const CAMERA_SPEED = 0.001;
@@ -27,6 +27,13 @@ const obj2 = new Object3D({
   }),
 });
 
+const sphere = new Object3D({
+  position: vec3(-0.7, 1.8, 0),
+  rotationSpeed: vec3(0, 0, 0),
+  shader: "normal",
+  mesh: new Sphere(),
+});
+
 const engine = new Engine();
 
 engine.init().then(() => {
@@ -37,6 +44,7 @@ engine.init().then(() => {
 
   engine.addObject(obj1);
   engine.addObject(obj2);
+  engine.addObject(sphere);
 
   window.addEventListener("keydown", (event) => {
     if (event.key === " ") {

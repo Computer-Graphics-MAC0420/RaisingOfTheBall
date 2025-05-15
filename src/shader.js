@@ -276,7 +276,7 @@ class Shader {
     this.#gl.bindBuffer(this.#gl.ELEMENT_ARRAY_BUFFER, this.#buffers.indices);
     this.#gl.bufferData(
       this.#gl.ELEMENT_ARRAY_BUFFER,
-      new Uint8Array(indices),
+      new Uint16Array(indices),
       this.#gl.STATIC_DRAW
     );
   }
