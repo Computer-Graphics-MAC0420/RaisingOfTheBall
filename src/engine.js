@@ -4,14 +4,52 @@ import AvailableShaders from "./shaders";
 import Camera from "./camera";
 
 class Engine {
+  /**
+   * @private
+   * @type {HTMLCanvasElement} - The canvas element used for rendering
+   */
   #canvas;
+
+  /**
+   * @private
+   * @type {Object.<number, Object3D>} - Dictionary of objects in the scene, indexed by unique IDs
+   */
   #objects = {};
+
+  /**
+   * @private
+   * @type {Object.<string, Shader>} - Dictionary of available shaders, indexed by name
+   */
   #shaders = {};
+
+  /**
+   * @private
+   * @type {Shader|null} - Currently active shader
+   */
   #activeShader = null;
+
+  /**
+   * @private
+   * @type {number[]} - Background color in RGBA format [r, g, b, a]
+   */
   #background = [0.0, 0.0, 0.0, 1.0];
+
+  /**
+   * @private
+   * @type {number} - Timestamp of the last frame in milliseconds
+   */
   #lastTime = 0;
+
+  /**
+   * @private
+   * @type {Camera} - Camera used for rendering the scene
+   */
   #camera;
 
+  /**
+   * @type {function(number):void|undefined} - Callback function for update events
+   * @param {number} dt - Time delta in milliseconds since the last update
+   */
   onUpdate;
 
   get camera() {

@@ -31,8 +31,17 @@ const engine = new Engine();
 engine.init().then(() => {
   console.log("Engine initialized");
 
+  engine.camera.position = vec3(-5, 0, 0);
+  // engine.camera.lookAt(vec3(0, 0, 3));
+
   engine.addObject(obj1);
   engine.addObject(obj2);
+
+  window.addEventListener("keydown", (event) => {
+    if (event.key === " ") {
+      console.log("Camera: ", engine.camera.position, engine.camera.lookingAt);
+    }
+  });
 
   engine.onUpdate = (dt) => {
     handleMovement(dt);

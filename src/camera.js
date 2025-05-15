@@ -3,6 +3,18 @@ class Camera {
   #at;
   #up;
 
+  get position() {
+    return this.#eye;
+  }
+
+  set position(value) {
+    this.moveTo(value);
+  }
+
+  get lookingAt() {
+    return this.#at;
+  }
+
   constructor({
     position = vec3(2, 2, 0),
     at = vec3(0, 0, 0),
@@ -66,6 +78,10 @@ class Camera {
       )
     );
     this.#at = newAt;
+  }
+
+  lookAt(position) {
+    this.#at = position;
   }
 }
 
