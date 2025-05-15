@@ -42,8 +42,6 @@ class Engine {
   render() {
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
-    this.bindCamera();
-
     for (const obj of Object.values(this.#objects)) {
       this.renderObject(obj);
     }
@@ -189,15 +187,16 @@ class Engine {
 
     this.setActiveShader(obj.shader);
 
+    if (!this.#activeShader) {
+      throw new Error("No active shader");
+    }
+
+    this.bindCamera();
     this.#activeShader.setUniformMatrix4fv(
       "uPerspective",
       false,
       flatten(this.perspective)
     );
-
-    if (!this.#activeShader) {
-      throw new Error("No active shader");
-    }
 
     this.bindMesh(obj.mesh);
 
