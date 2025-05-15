@@ -1,4 +1,5 @@
 import Mesh from "./mesh";
+import AvailableShaders, { DEFAULT_SHADER } from "./shaders";
 import { getModelMatrix } from "./utils";
 
 class Object3D {
@@ -9,8 +10,15 @@ class Object3D {
   #rotationSpeed = vec3(0, 0, 0);
 
   #mesh;
+  #shader = DEFAULT_SHADER;
 
-  constructor({ position, velocity, rotationSpeed, mesh }) {
+  constructor({
+    position,
+    velocity,
+    rotationSpeed,
+    mesh,
+    shader = DEFAULT_SHADER,
+  }) {
     this.position = position;
 
     if (velocity) {
@@ -22,6 +30,7 @@ class Object3D {
     }
 
     this.mesh = mesh;
+    this.shader = shader;
   }
 
   get position() {
@@ -57,6 +66,17 @@ class Object3D {
       throw new Error("mesh must be an instance of Mesh");
     }
     this.#mesh = value;
+  }
+
+  get shader() {
+    return this.#shader;
+  }
+
+  set shader(value) {
+    if (!(value in AvailableShaders)) {
+      throw new Error(`Shader ${value} not available`);
+    }
+    this.#shader = value;
   }
 
   update(dt) {

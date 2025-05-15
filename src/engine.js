@@ -3,6 +3,7 @@ import gFragmentShaderSrc from "./shaders/fragment.glsl?raw";
 import redFragmentShaderSrc from "./shaders/fragment.red.glsl?raw";
 import Object3D from "./object3d";
 import Shader from "./shader";
+import AvailableShaders from "./shaders";
 
 class Engine {
   #canvas;
@@ -79,16 +80,19 @@ class Engine {
     gl.clearColor(...this.#background);
     gl.enable(gl.DEPTH_TEST);
 
+    this.perspective = perspective(60, 1, 0.1, 5);
+
     await this._initShaders();
   }
 
   async _initShaders() {
-    this.#shaders = {
-      default: new Shader(this.gl, gVertexShaderSrc, gFragmentShaderSrc),
-      red: new Shader(this.gl, gVertexShaderSrc, redFragmentShaderSrc),
-    };
-
-    const defaultShader = this.#shaders["default"];
+    for (const [name, shader] of Object.entries(AvailableShaders)) {
+      this.#shaders[name] = new Shader(
+        this.gl,
+        shader.vertexSrc,
+        shader.fragmentSrc
+      );
+    }
 
     for (const shader of Object.values(this.#shaders)) {
       // Define os atributos
@@ -179,6 +183,18 @@ class Engine {
   }
 
   renderObject(obj) {
+    if (!(obj instanceof Object3D)) {
+      throw new Error("obj must be an instance of Object3D");
+    }
+
+    this.setActiveShader(obj.shader);
+
+    this.#activeShader.setUniformMatrix4fv(
+      "uPerspective",
+      false,
+      flatten(this.perspective)
+    );
+
     if (!this.#activeShader) {
       throw new Error("No active shader");
     }

@@ -1,15 +1,16 @@
-import Shader from "../shader";
-import defaultVertexShaderSrc from "./shaders/vertex.glsl?raw";
-import defaultFragmentShaderSrc from "./shaders/fragment.glsl?raw";
-import redFragmentShaderSrc from "./shaders/fragment.red.glsl?raw";
+import defaultVertexShaderSrc from "./vertex.glsl?raw";
+import defaultFragmentShaderSrc from "./fragment.glsl?raw";
+import redFragmentShaderSrc from "./fragment.red.glsl?raw";
+
+export const DEFAULT_SHADER = "default";
 
 export default {
   default: {
-    vertexSrc: defaultFragmentShaderSrc,
-    fragmentSrc: defaultVertexShaderSrc,
+    vertexSrc: defaultVertexShaderSrc,
+    fragmentSrc: defaultFragmentShaderSrc,
   },
   red: {
-    vertexSrc: defaultFragmentShaderSrc,
+    vertexSrc: defaultVertexShaderSrc,
     fragmentSrc: redFragmentShaderSrc,
   },
 };
