@@ -1,4 +1,4 @@
-import Mesh from "../mesh";
+import Mesh from "../mesh.js";
 
 class Cube extends Mesh {
   constructor({ size = 1, color = vec4(0.8, 0.8, 0.8, 1) }) {

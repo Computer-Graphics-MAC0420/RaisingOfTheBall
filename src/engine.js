@@ -1,8 +1,8 @@
-import Object3D from "./object3d";
-import Shader from "./shader";
-import AvailableShaders from "./shaders";
-import Camera from "./camera";
-import Light from "./light";
+import Object3D from "./object3d.js";
+import Shader from "./shader.js";
+import AvailableShaders from "./shaders/index.js";
+import Camera from "./camera.js";
+import Light from "./light.js";
 
 class Engine {
   /**
@@ -146,7 +146,8 @@ class Engine {
   }
 
   async _initShaders() {
-    for (const [name, shader] of Object.entries(AvailableShaders)) {
+    const loadedShaders = await AvailableShaders(); // Call the async function
+    for (const [name, shader] of Object.entries(loadedShaders)) { // Use the resolved value
       this.#shaders[name] = new Shader(
         this.gl,
         shader.vertexSrc,

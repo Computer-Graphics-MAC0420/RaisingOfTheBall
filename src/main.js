@@ -1,9 +1,9 @@
-import Engine from "./engine";
-import Object3D from "./object3d";
-import "./style.css";
+import Engine from "./engine.js";
+import Object3D from "./object3d.js";
+// import "./style.css"; // Removed as it's linked in HTML
 
-import { Cube, Plain, Sphere } from "./meshes";
-import { isKeyPressed } from "./keyboard";
+import { Cube, Plain, Sphere } from "./meshes/index.js";
+import { isKeyPressed } from "./keyboard.js";
 
 const CAMERA_SPEED = 0.001;
 const lightPos = vec3(-4, 0, 2);

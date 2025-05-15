@@ -1,5 +1,5 @@
-import Cube from "./cube";
-import Sphere from "./sphere";
-import Plain from "./plain";
+import Cube from "./cube.js";
+import Sphere from "./sphere.js";
+import Plain from "./plain.js";
 
 export { Cube, Sphere, Plain };

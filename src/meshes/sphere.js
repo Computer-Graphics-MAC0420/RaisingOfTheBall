@@ -1,4 +1,4 @@
-import Mesh from "../mesh";
+import Mesh from "../mesh.js";
 
 function crieEsfera(ndivisoes = 2) {
   // começamos com os vértices de um balão

@@ -1,4 +1,4 @@
-import { getModelMatrix } from "./utils";
+import { getModelMatrix } from "./utils.js";
 
 class Mesh {
   #vertices;
