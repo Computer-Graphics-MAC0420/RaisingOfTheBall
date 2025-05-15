@@ -11,16 +11,16 @@ function crieEsfera(ndivisoes = 2) {
 
   let triangulo = [
     [vp[0], vp[1], vp[2]],
-    [vp[0], vp[1], vn[2]],
+    [vp[0], vn[2], vp[1]],
 
-    [vp[0], vn[1], vp[2]],
+    [vp[0], vp[2], vn[1]],
     [vp[0], vn[1], vn[2]],
 
-    [vn[0], vp[1], vp[2]],
+    [vn[0], vp[2], vp[1]],
     [vn[0], vp[1], vn[2]],
 
     [vn[0], vn[1], vp[2]],
-    [vn[0], vn[1], vn[2]],
+    [vn[0], vn[2], vn[1]],
   ];
 
   for (let i = 0; i < triangulo.length; i++) {
@@ -75,8 +75,10 @@ function getNormal(a, b, c) {
 }
 
 class Sphere extends Mesh {
-  constructor({ density = 2, color = vec4(0.8, 0.8, 0.8, 1) } = {}) {
-    const [vertices, normals] = crieEsfera(density);
+  constructor({ density = 2, color = vec4(0.8, 0.8, 0.8, 1), size = 1 } = {}) {
+    const [verts, normals] = crieEsfera(density);
+
+    const vertices = verts.map((v) => scale(size, vec3(v)));
 
     const colors = Array(vertices.length)
       .fill(0)
