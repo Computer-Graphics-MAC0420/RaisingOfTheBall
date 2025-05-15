@@ -1,6 +1,6 @@
 import defaultVertexShaderSrc from "./vertex.glsl?raw";
 import defaultFragmentShaderSrc from "./fragment.glsl?raw";
-import redFragmentShaderSrc from "./fragment.red.glsl?raw";
+import normalFragmentShaderSrc from "./fragment.normal.glsl?raw";
 
 export const DEFAULT_SHADER = "default";
 
@@ -9,8 +9,8 @@ export default {
     vertexSrc: defaultVertexShaderSrc,
     fragmentSrc: defaultFragmentShaderSrc,
   },
-  red: {
+  normal: {
     vertexSrc: defaultVertexShaderSrc,
-    fragmentSrc: redFragmentShaderSrc,
+    fragmentSrc: normalFragmentShaderSrc,
   },
 };

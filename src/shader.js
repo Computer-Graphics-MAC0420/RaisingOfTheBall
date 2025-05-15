@@ -101,6 +101,12 @@ class Shader {
       throw new Error("Falha ao criar buffer de vértices");
     }
 
+    // Buffer para normais
+    this.#buffers.normals = this.#gl.createBuffer();
+    if (!this.#buffers.normals) {
+      throw new Error("Falha ao criar buffer de normais");
+    }
+
     // Buffer para cores
     this.#buffers.colors = this.#gl.createBuffer();
     if (!this.#buffers.colors) {
@@ -211,6 +217,33 @@ class Shader {
   }
 
   /**
+   * Vincula normais ao buffer
+   * @param {Array} normals - Array de vetores normais
+   */
+  bindNormals(normals) {
+    // Vincular os dados ao buffer
+    this.#gl.bindBuffer(this.#gl.ARRAY_BUFFER, this.#buffers.normals);
+    this.#gl.bufferData(
+      this.#gl.ARRAY_BUFFER,
+      flatten(normals),
+      this.#gl.STATIC_DRAW
+    );
+
+    // Configurar o atributo no shader
+    const attr = this.#attributes.aNormal;
+    if (attr) {
+      this.#gl.vertexAttribPointer(
+        attr.location,
+        attr.size,
+        attr.type,
+        attr.normalized,
+        attr.stride,
+        attr.offset
+      );
+    }
+  }
+
+  /**
    * Vincula cores ao buffer
    * @param {Array} colors - Array de cores
    */
@@ -254,6 +287,7 @@ class Shader {
    */
   bindMesh(mesh) {
     this.bindVertices(mesh.vertices);
+    this.bindNormals(mesh.normals);
     this.bindColors(mesh.colors);
     this.bindIndices(mesh.indices);
   }

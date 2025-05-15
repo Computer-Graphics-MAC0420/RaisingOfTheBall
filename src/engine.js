@@ -2,6 +2,7 @@ import Object3D from "./object3d";
 import Shader from "./shader";
 import AvailableShaders from "./shaders";
 import Camera from "./camera";
+import Light from "./light";
 
 class Engine {
   /**
@@ -45,6 +46,12 @@ class Engine {
    * @type {Camera} - Camera used for rendering the scene
    */
   #camera;
+
+  /**
+   * @private
+   * @type {Light} - Light source used in the scene
+   */
+  #light;
 
   /**
    * @type {function(number):void|undefined} - Callback function for update events
@@ -127,6 +134,7 @@ class Engine {
 
     this.perspective = perspective(60, 1, 0.1, 5);
     this.#camera = new Camera();
+    this.#light = new Light();
 
     await this._initShaders();
   }
@@ -143,6 +151,7 @@ class Engine {
     for (const shader of Object.values(this.#shaders)) {
       // Define os atributos
       shader.defineAttribute("aPosition", 3);
+      shader.defineAttribute("aNormal", 3);
       shader.defineAttribute("aColor", 4);
 
       shader.defineUniform("uView");
@@ -155,7 +164,7 @@ class Engine {
 
     // Calcula a matriz de transformação perpectiva (fovy, aspect, near, far)
     // que é feita apenas 1 vez
-    this.perspective = perspective(60, 1, 0.1, 5);
+    this.perspective = perspective(60, 1, 0.1, 50);
     this.#activeShader.setUniformMatrix4fv(
       "uPerspective",
       false,
@@ -175,6 +184,14 @@ class Engine {
     }
 
     this.#activeShader.bindVertices(vertices);
+  }
+
+  bindNormals(normals) {
+    if (!this.#activeShader) {
+      throw new Error("No active shader");
+    }
+
+    this.#activeShader.bindNormals(normals);
   }
 
   bindColors(colors) {
