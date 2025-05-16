@@ -3,6 +3,7 @@ import Shader from "./shader";
 import AvailableShaders from "./shaders";
 import Camera from "./camera";
 import Light from "./light";
+import Texture from "./texture";
 
 class Engine {
   /**
@@ -155,7 +156,7 @@ class Engine {
     }
 
     for (const shader of Object.values(this.#shaders)) {
-      // Define os atributos
+      // Define os atributos básicos para todos os shaders
       shader.defineAttribute("aPosition", 3);
       shader.defineAttribute("aNormal", 3);
       shader.defineAttribute("aColor", 4);
@@ -164,6 +165,17 @@ class Engine {
       shader.defineUniform("uModel");
       shader.defineUniform("uPerspective");
       shader.defineUniform("uLightPos");
+    }
+
+    // Configuração específica para os shaders de textura
+    if (this.#shaders.texture) {
+      this.#shaders.texture.defineAttribute("aTexCoord", 2);
+      this.#shaders.texture.defineUniform("uTexture");
+    }
+
+    if (this.#shaders.textureLight) {
+      this.#shaders.textureLight.defineAttribute("aTexCoord", 2);
+      this.#shaders.textureLight.defineUniform("uTexture");
     }
 
     // Define como shader ativo
@@ -264,6 +276,14 @@ class Engine {
     this.bindCamera();
 
     this.bindMesh(obj.mesh);
+
+    // Vincula a textura se o objeto tiver uma e estiver usando um shader de textura
+    if (
+      obj.texture &&
+      (obj.shader === "texture" || obj.shader === "textureLight")
+    ) {
+      this.#activeShader.bindTexture(obj.texture, "uTexture", 0);
+    }
 
     const model = obj.getModelMatrix();
     this.#activeShader.setUniformMatrix4fv("uModel", false, flatten(model));

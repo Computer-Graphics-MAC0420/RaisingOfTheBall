@@ -1,5 +1,6 @@
 import Mesh from "./mesh";
 import AvailableShaders, { DEFAULT_SHADER } from "./shaders";
+import Texture from "./texture";
 import { getModelMatrix } from "./utils";
 
 /**
@@ -21,6 +22,8 @@ class Object3D {
   #mesh;
   /** @type {string} Identificador do shader usado para renderizar o objeto */
   #shader = DEFAULT_SHADER;
+  /** @type {Texture|null} Textura do objeto */
+  #texture = null;
 
   /**
    * Cria um novo objeto 3D.
@@ -30,6 +33,7 @@ class Object3D {
    * @param {vec3} [options.rotationSpeed=vec3(0,0,0)] - Velocidade de rotação inicial
    * @param {Mesh|null} [options.mesh=null] - Mesh do objeto
    * @param {string} [options.shader=DEFAULT_SHADER] - Shader para renderização
+   * @param {Texture} [options.texture=null] - Textura do objeto
    */
   constructor({
     position = vec3(0, 0, 0),
@@ -37,6 +41,7 @@ class Object3D {
     rotationSpeed = vec3(0, 0, 0),
     mesh = null,
     shader = DEFAULT_SHADER,
+    texture = null,
   } = {}) {
     this.position = position;
     this.velocity = velocity;
@@ -44,6 +49,7 @@ class Object3D {
 
     this.mesh = mesh;
     this.shader = shader;
+    this.texture = texture;
   }
 
   /**
@@ -127,6 +133,21 @@ class Object3D {
       throw new Error(`Shader ${value} not available`);
     }
     this.#shader = value;
+  }
+
+  /**
+   * @returns {Texture|null} Textura atual do objeto
+   */
+  get texture() {
+    return this.#texture;
+  }
+
+  /**
+   * Define a textura do objeto
+   * @param {Texture|null} value - Nova textura
+   */
+  set texture(value) {
+    this.#texture = value;
   }
 
   /**

@@ -4,6 +4,7 @@ import "./style.css";
 
 import { Cube, Plain, Sphere } from "./meshes";
 import { isKeyPressed } from "./keyboard";
+import Texture from "./texture";
 
 const CAMERA_SPEED = 0.001;
 const lightPos = vec3(-4, 0, 2);
@@ -66,11 +67,40 @@ engine.init().then(() => {
   engine.camera.position = vec3(-5, 0, 0);
   engine.light.position = lightPos;
 
+  // Criar uma textura para o cubo texturizado
+  const dirtTexture = new Texture(engine.gl, "./src/assets/dirt.png");
+
+  // Criar um cubo texturizado sem iluminação
+  const texturedCube = new Object3D({
+    position: vec3(1.7, 0, 0),
+    rotationSpeed: vec3(0, 0.1, 0),
+    shader: "texture",
+    mesh: new Cube({
+      size: 1.0,
+      color: vec4(1, 1, 1, 1), // Cor branca para não afetar a textura
+    }),
+    texture: dirtTexture,
+  });
+
+  // Criar um cubo texturizado com iluminação
+  const textureLightCube = new Object3D({
+    position: vec3(3.2, 0, 0),
+    rotationSpeed: vec3(0.05, 0.1, 0.05),
+    shader: "textureLight",
+    mesh: new Cube({
+      size: 1.0,
+      color: vec4(1, 1, 1, 1),
+    }),
+    texture: dirtTexture,
+  });
+
   engine.addObject(obj1);
   engine.addObject(obj2);
   engine.addObject(sphere);
   engine.addObject(lightGismo);
   engine.addObject(floor);
+  engine.addObject(texturedCube);
+  engine.addObject(textureLightCube);
 
   window.addEventListener("keydown", (event) => {
     if (event.key === " ") {

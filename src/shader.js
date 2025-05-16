@@ -7,6 +7,7 @@ class Shader {
   #attributes = {};
   #uniforms = {};
   #buffers = {};
+  #textures = {};
 
   /**
    * Cria uma nova instância de Shader
@@ -112,6 +113,12 @@ class Shader {
     if (!this.#buffers.colors) {
       throw new Error("Falha ao criar buffer de cores");
     }
+
+    // Buffer para coordenadas de textura
+    this.#buffers.texCoords = this.#gl.createBuffer();
+    if (!this.#buffers.texCoords) {
+      throw new Error("Falha ao criar buffer de coordenadas de textura");
+    }
   }
 
   /**
@@ -207,6 +214,21 @@ class Shader {
   }
 
   /**
+   * Define o valor de um uniform do tipo inteiro
+   * @param {string} name - Nome do uniform
+   * @param {number} value - Valor do inteiro
+   */
+  setUniform1i(name, value) {
+    const location = this.#uniforms[name];
+    if (location === undefined) {
+      console.warn(`Uniform '${name}' não foi definido`);
+      return;
+    }
+
+    this.#gl.uniform1i(location, value);
+  }
+
+  /**
    * Vincula vértices ao buffer
    * @param {Array} vertices - Array de vértices
    */
@@ -297,6 +319,48 @@ class Shader {
   }
 
   /**
+   * Vincula coordenadas de textura ao buffer
+   * @param {Array} texCoords - Array de coordenadas de textura
+   */
+  bindTexCoords(texCoords) {
+    this.#gl.bindBuffer(this.#gl.ARRAY_BUFFER, this.#buffers.texCoords);
+    this.#gl.bufferData(
+      this.#gl.ARRAY_BUFFER,
+      flatten(texCoords),
+      this.#gl.STATIC_DRAW
+    );
+
+    const attr = this.#attributes.aTexCoord;
+    if (attr) {
+      this.#gl.vertexAttribPointer(
+        attr.location,
+        attr.size,
+        attr.type,
+        attr.normalized,
+        attr.stride,
+        attr.offset
+      );
+    }
+  }
+
+  /**
+   * Vincula uma textura ao shader
+   * @param {Texture} texture - A textura a ser vinculada
+   * @param {string} uniformName - Nome do uniform sampler2D no shader
+   * @param {number} textureUnit - Unidade de textura a ser usada (0-31)
+   */
+  bindTexture(texture, uniformName, textureUnit = 0) {
+    // Ativa a textura na unidade especificada
+    const unit = texture.bind(textureUnit);
+
+    // Define o uniform sampler2D com o valor da unidade de textura
+    this.setUniform1i(uniformName, unit);
+
+    // Armazena a referência à textura
+    this.#textures[uniformName] = texture;
+  }
+
+  /**
    * Vincula um mesh ao shader
    * @param {Mesh} mesh - O mesh a ser vinculado
    */
@@ -304,6 +368,12 @@ class Shader {
     this.bindVertices(mesh.vertices);
     this.bindNormals(mesh.normals);
     this.bindColors(mesh.colors);
+
+    // Vincula coordenadas de textura se disponíveis
+    if (mesh.texCoords && this.#attributes.aTexCoord) {
+      this.bindTexCoords(mesh.texCoords);
+    }
+
     this.bindIndices(mesh.indices);
   }
 
