@@ -30,63 +30,22 @@ class Cube extends Mesh {
     const normals = generateFlatNormals(vertices, indices);
     const expandedVertices = expandVertices(vertices, indices);
 
-    // Coordenadas de textura para cada vértice do cubo
-    // Cada face do cubo tem coordenadas de 0,0 a 1,1
     const texCoords = [
-      // Face frontal (0,1,2,3)
-      vec2(0, 0),
-      vec2(0, 1),
-      vec2(1, 1),
-      vec2(1, 0),
-      // Face traseira (4,5,6,7)
-      vec2(1, 0),
-      vec2(1, 1),
-      vec2(0, 1),
-      vec2(0, 0),
-      // Face inferior (0,4,7,3)
-      vec2(0, 1),
-      vec2(0, 0),
-      vec2(1, 0),
-      vec2(1, 1),
-      // Face superior (1,2,6,5)
-      vec2(0, 0),
-      vec2(1, 0),
-      vec2(1, 1),
-      vec2(0, 1),
-      // Face direita (2,3,7,6)
-      vec2(0, 1),
-      vec2(0, 0),
-      vec2(1, 0),
-      vec2(1, 1),
-      // Face esquerda (0,1,5,4)
-      vec2(1, 0),
-      vec2(1, 1),
-      vec2(0, 1),
-      vec2(0, 0),
-    ];
-
-    // Expandir as coordenadas de textura de acordo com os índices
-    const expandedTexCoords = [];
-    for (let i = 0; i < indices.length; i++) {
-      // Cada quadrado (face) usa 4 vértices, 6 índices
-      // Mapear o índice do vértice para a coordenada de textura correta
-      const faceIndex = Math.floor(i / 6);
-      const vertexInFace = i % 6;
-      let texCoordIndex;
-
-      if (vertexInFace === 0 || vertexInFace === 3) texCoordIndex = 0;
-      else if (vertexInFace === 1) texCoordIndex = 1;
-      else if (vertexInFace === 2 || vertexInFace === 5) texCoordIndex = 2;
-      else if (vertexInFace === 4) texCoordIndex = 3;
-
-      expandedTexCoords.push(texCoords[faceIndex * 4 + texCoordIndex]);
-    }
+      square(vec2(0, 1), vec2(1, 1), vec2(1, 0), vec2(0, 0)),
+      square(vec2(0, 1), vec2(1, 1), vec2(1, 0), vec2(0, 0)),
+      square(vec2(0, 1), vec2(1, 1), vec2(1, 0), vec2(0, 0)),
+      square(vec2(0, 1), vec2(1, 1), vec2(1, 0), vec2(0, 0)),
+      square(vec2(0, 1), vec2(1, 1), vec2(1, 0), vec2(0, 0)),
+      square(vec2(0, 1), vec2(1, 1), vec2(1, 0), vec2(0, 0)),
+      square(vec2(0, 1), vec2(1, 1), vec2(1, 0), vec2(0, 0)),
+      square(vec2(0, 1), vec2(1, 1), vec2(1, 0), vec2(0, 0)),
+    ].flat();
 
     super({
       vertices: expandedVertices,
       colors,
       normals,
-      texCoords: expandedTexCoords,
+      texCoords,
       useIndices: false,
     });
   }
