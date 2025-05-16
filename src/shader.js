@@ -152,6 +152,7 @@ class Shader {
 
     if (location === -1) {
       console.warn(`Atributo '${name}' não encontrado no shader`);
+      this.#attributes[name] = null;
       return;
     }
 
@@ -176,6 +177,7 @@ class Shader {
 
     if (location === null) {
       console.warn(`Uniform '${name}' não encontrado no shader`);
+      this.#uniforms[name] = null;
       return;
     }
 
@@ -191,7 +193,10 @@ class Shader {
   setUniformMatrix4fv(name, transpose, value) {
     const location = this.#uniforms[name];
     if (location === undefined) {
-      console.warn(`Uniform '${name}' não foi definido`);
+      return;
+    }
+    if (location === null) {
+      console.warn(`Uniform '${name}' não encontrado no shader`);
       return;
     }
 
@@ -206,7 +211,10 @@ class Shader {
   setUniform3fv(name, value) {
     const location = this.#uniforms[name];
     if (location === undefined) {
-      console.warn(`Uniform '${name}' não foi definido`);
+      return;
+    }
+    if (location === null) {
+      console.warn(`Uniform '${name}' não encontrado no shader`);
       return;
     }
 
@@ -221,7 +229,10 @@ class Shader {
   setUniform1i(name, value) {
     const location = this.#uniforms[name];
     if (location === undefined) {
-      console.warn(`Uniform '${name}' não foi definido`);
+      return;
+    }
+    if (location === null) {
+      console.warn(`Uniform '${name}' não encontrado no shader`);
       return;
     }
 

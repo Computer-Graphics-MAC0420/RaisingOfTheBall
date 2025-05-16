@@ -13,21 +13,50 @@ export default {
   default: {
     vertexSrc: defaultVertexShaderSrc,
     fragmentSrc: defaultFragmentShaderSrc,
+    attributes: {
+      aPosition: { size: 3 },
+      aNormal: { size: 3 },
+      aColor: { size: 4 },
+    },
+    uniforms: ["uView", "uModel", "uPerspective", "uLightPos"],
   },
   normal: {
     vertexSrc: defaultVertexShaderSrc,
     fragmentSrc: normalFragmentShaderSrc,
+    attributes: {
+      aPosition: { size: 3 },
+      aNormal: { size: 3 },
+      aColor: { size: 4 },
+    },
+    uniforms: ["uView", "uModel", "uPerspective", "uLightPos"],
   },
   light: {
     vertexSrc: defaultVertexShaderSrc,
     fragmentSrc: lightFragmentShaderSrc,
+    attributes: {
+      aPosition: { size: 3 },
+      aNormal: { size: 3 },
+      aColor: { size: 4 },
+    },
+    uniforms: ["uView", "uModel", "uPerspective", "uLightPos"],
   },
   texture: {
     vertexSrc: textureVertexShaderSrc,
     fragmentSrc: textureFragmentShaderSrc,
+    attributes: {
+      aPosition: { size: 3 },
+      aTexCoord: { size: 2 },
+    },
+    uniforms: ["uView", "uModel", "uPerspective", "uTexture"],
   },
   textureLight: {
     vertexSrc: textureLightVertexShaderSrc,
     fragmentSrc: textureLightFragmentShaderSrc,
+    attributes: {
+      aPosition: { size: 3 },
+      aNormal: { size: 3 },
+      aTexCoord: { size: 2 },
+    },
+    uniforms: ["uView", "uModel", "uPerspective", "uLightPos", "uTexture"],
   },
 };

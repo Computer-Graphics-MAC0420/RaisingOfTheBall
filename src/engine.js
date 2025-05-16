@@ -147,35 +147,30 @@ class Engine {
   }
 
   async _initShaders() {
-    for (const [name, shader] of Object.entries(AvailableShaders)) {
+    for (const [name, shaderConfig] of Object.entries(AvailableShaders)) {
       this.#shaders[name] = new Shader(
         this.gl,
-        shader.vertexSrc,
-        shader.fragmentSrc
+        shaderConfig.vertexSrc,
+        shaderConfig.fragmentSrc
       );
-    }
 
-    for (const shader of Object.values(this.#shaders)) {
-      // Define os atributos básicos para todos os shaders
-      shader.defineAttribute("aPosition", 3);
-      shader.defineAttribute("aNormal", 3);
-      shader.defineAttribute("aColor", 4);
+      const shader = this.#shaders[name];
 
-      shader.defineUniform("uView");
-      shader.defineUniform("uModel");
-      shader.defineUniform("uPerspective");
-      shader.defineUniform("uLightPos");
-    }
+      // Define os atributos com base na configuração
+      if (shaderConfig.attributes) {
+        for (const [attrName, attrConfig] of Object.entries(
+          shaderConfig.attributes
+        )) {
+          shader.defineAttribute(attrName, attrConfig.size);
+        }
+      }
 
-    // Configuração específica para os shaders de textura
-    if (this.#shaders.texture) {
-      this.#shaders.texture.defineAttribute("aTexCoord", 2);
-      this.#shaders.texture.defineUniform("uTexture");
-    }
-
-    if (this.#shaders.textureLight) {
-      this.#shaders.textureLight.defineAttribute("aTexCoord", 2);
-      this.#shaders.textureLight.defineUniform("uTexture");
+      // Define os uniforms com base na configuração
+      if (shaderConfig.uniforms) {
+        for (const uniformName of shaderConfig.uniforms) {
+          shader.defineUniform(uniformName);
+        }
+      }
     }
 
     // Define como shader ativo
