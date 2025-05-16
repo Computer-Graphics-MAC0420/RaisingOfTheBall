@@ -268,7 +268,9 @@ class Engine {
       throw new Error("No active shader");
     }
 
-    this.#activeShader.setUniform3fv("uLightPos", this.#light.position);
+    // Vincula a luz ao shader usando o novo método bindLight
+    this.#activeShader.bindLight(this.#light);
+
     this.bindCamera();
 
     if (obj.mesh) {

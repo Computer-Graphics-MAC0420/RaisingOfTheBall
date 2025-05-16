@@ -222,6 +222,24 @@ class Shader {
   }
 
   /**
+   * Define o valor de um uniform do tipo vetor 4D
+   * @param {string} name - Nome do uniform
+   * @param {Float32Array|Array} value - Valor do vetor (4 componentes)
+   */
+  setUniform4fv(name, value) {
+    const location = this.#uniforms[name];
+    if (location === undefined) {
+      return;
+    }
+    if (location === null) {
+      console.warn(`Uniform '${name}' não encontrado no shader`);
+      return;
+    }
+
+    this.#gl.uniform4fv(location, value);
+  }
+
+  /**
    * Define o valor de um uniform do tipo inteiro
    * @param {string} name - Nome do uniform
    * @param {number} value - Valor do inteiro
@@ -369,6 +387,25 @@ class Shader {
 
     // Armazena a referência à textura
     this.#textures[uniformName] = texture;
+  }
+
+  /**
+   * Vincula os dados de uma luz ao shader
+   * @param {Light} light - A fonte de luz
+   */
+  bindLight(light) {
+    // Envia a posição da luz para o shader
+    if (light.position) {
+      this.setUniform3fv("uLightPos", light.position);
+    }
+
+    // Envia a cor da luz para o shader se disponível
+    if (light.color) {
+      this.setUniform4fv("uLightColor", light.color);
+    }
+
+    // Outras propriedades da luz podem ser adicionadas aqui
+    // por exemplo: intensidade, atenuação, etc.
   }
 
   /**

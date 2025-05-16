@@ -7,6 +7,7 @@ in vec3 vLightDir;
 in vec3 vViewDir;
 
 uniform sampler2D uTexture;
+uniform vec4 uLightColor;
 
 out vec4 fragColor;
 
@@ -15,7 +16,7 @@ void main() {
   vec4 texColor = texture(uTexture, vTexCoord);
 
   // Parâmetros de iluminação
-  vec3 lightColor = vec3(1.0f, 1.0f, 1.0f);
+  vec3 lightColor = uLightColor.rgb;
   float ambientStrength = 0.2f;
   float specularStrength = 0.5f;
   float shininess = 32.0f;

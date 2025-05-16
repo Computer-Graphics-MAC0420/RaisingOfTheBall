@@ -38,7 +38,7 @@ export default {
       aNormal: { size: 3 },
       aColor: { size: 4 },
     },
-    uniforms: ["uView", "uModel", "uPerspective", "uLightPos"],
+    uniforms: ["uView", "uModel", "uPerspective", "uLightPos", "uLightColor"],
   },
   texture: {
     vertexSrc: textureVertexShaderSrc,
@@ -57,6 +57,13 @@ export default {
       aNormal: { size: 3 },
       aTexCoord: { size: 2 },
     },
-    uniforms: ["uView", "uModel", "uPerspective", "uLightPos", "uTexture"],
+    uniforms: [
+      "uView",
+      "uModel",
+      "uPerspective",
+      "uLightPos",
+      "uTexture",
+      "uLightColor",
+    ],
   },
 };

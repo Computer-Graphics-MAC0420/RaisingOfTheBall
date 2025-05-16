@@ -92,7 +92,7 @@ engine.init().then(() => {
 
   // Criar materiais para os objetos
   const dirtMaterial = new Material({
-    shader: "texture",
+    shader: "textureLight",
     texture: dirtTexture,
   });
 
