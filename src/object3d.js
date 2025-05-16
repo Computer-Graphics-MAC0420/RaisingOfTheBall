@@ -1,6 +1,6 @@
 import Mesh from "./mesh";
 import AvailableShaders, { DEFAULT_SHADER } from "./shaders";
-import Texture from "./texture";
+import Material from "./material";
 import { getModelMatrix } from "./utils";
 
 /**
@@ -20,10 +20,8 @@ class Object3D {
 
   /** @type {Mesh|null} Mesh que define a geometria do objeto */
   #mesh;
-  /** @type {string} Identificador do shader usado para renderizar o objeto */
-  #shader = DEFAULT_SHADER;
-  /** @type {Texture|null} Textura do objeto */
-  #texture = null;
+  /** @type {Material|null} Material do objeto */
+  #material = null;
 
   /**
    * Cria um novo objeto 3D.
@@ -32,8 +30,8 @@ class Object3D {
    * @param {vec3} [options.velocity=vec3(0,0,0)] - Velocidade inicial
    * @param {vec3} [options.rotationSpeed=vec3(0,0,0)] - Velocidade de rotação inicial
    * @param {Mesh|null} [options.mesh=null] - Mesh do objeto
-   * @param {string} [options.shader=DEFAULT_SHADER] - Shader para renderização
-   * @param {Texture} [options.texture=null] - Textura do objeto
+   * @param {string} [options.shader=DEFAULT_SHADER] - Shader para renderização (legado, use material)
+   * @param {Material|null} [options.material=null] - Material do objeto
    */
   constructor({
     position = vec3(0, 0, 0),
@@ -41,15 +39,22 @@ class Object3D {
     rotationSpeed = vec3(0, 0, 0),
     mesh = null,
     shader = DEFAULT_SHADER,
-    texture = null,
+    material = null,
   } = {}) {
     this.position = position;
     this.velocity = velocity;
     this.rotationSpeed = rotationSpeed;
 
     this.mesh = mesh;
-    this.shader = shader;
-    this.texture = texture;
+
+    // Se um material for fornecido, use-o
+    if (material) {
+      this.material = material;
+    }
+    // Caso contrário, crie um material com o shader fornecido (para compatibilidade)
+    else if (shader) {
+      this.material = new Material({ shader });
+    }
   }
 
   /**
@@ -120,11 +125,11 @@ class Object3D {
    * @returns {string} Identificador do shader atual
    */
   get shader() {
-    return this.#shader;
+    return this.material ? this.material.shader : DEFAULT_SHADER;
   }
 
   /**
-   * Define o shader do objeto
+   * Define o shader do objeto (compatibilidade)
    * @param {string} value - Identificador do novo shader
    * @throws {Error} Se o shader não estiver disponível
    */
@@ -132,22 +137,27 @@ class Object3D {
     if (!(value in AvailableShaders)) {
       throw new Error(`Shader ${value} not available`);
     }
-    this.#shader = value;
+
+    if (!this.material) {
+      this.material = new Material({ shader: value });
+    } else {
+      this.material.setShader(value);
+    }
   }
 
   /**
-   * @returns {Texture|null} Textura atual do objeto
+   * @returns {Material|null} Material atual do objeto
    */
-  get texture() {
-    return this.#texture;
+  get material() {
+    return this.#material;
   }
 
   /**
-   * Define a textura do objeto
-   * @param {Texture|null} value - Nova textura
+   * Define o material do objeto
+   * @param {Material|null} value - Novo material
    */
-  set texture(value) {
-    this.#texture = value;
+  set material(value) {
+    this.#material = value;
   }
 
   /**
@@ -171,10 +181,18 @@ class Object3D {
    * @returns {mat4} Matriz de modelo para transformação
    */
   getModelMatrix() {
-    const model = mult(
-      getModelMatrix(this.#position, this.#rotation, this.#scale),
-      this.mesh.getModelMatrix()
+    const baseModel = getModelMatrix(
+      this.#position,
+      this.#rotation,
+      this.#scale
     );
+
+    // Se não tiver mesh, retorna apenas a transformação base
+    if (!this.mesh) {
+      return baseModel;
+    }
+
+    const model = mult(baseModel, this.mesh.getModelMatrix());
 
     return model;
   }

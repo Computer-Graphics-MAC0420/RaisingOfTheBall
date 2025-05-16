@@ -266,6 +266,7 @@ class Engine {
       throw new Error("obj must be an instance of Object3D");
     }
 
+    // Use o shader do material ou o shader padrão do objeto
     this.setActiveShader(obj.shader);
 
     if (!this.#activeShader) {
@@ -275,14 +276,25 @@ class Engine {
     this.#activeShader.setUniform3fv("uLightPos", this.#light.position);
     this.bindCamera();
 
-    this.bindMesh(obj.mesh);
+    if (obj.mesh) {
+      this.bindMesh(obj.mesh);
+    }
 
-    // Vincula a textura se o objeto tiver uma e estiver usando um shader de textura
-    if (
-      obj.texture &&
-      (obj.shader === "texture" || obj.shader === "textureLight")
-    ) {
-      this.#activeShader.bindTexture(obj.texture, "uTexture", 0);
+    // Se o objeto tiver um material, aplique-o
+    if (obj.material) {
+      // Vincula a textura se o material tiver uma e estiver usando um shader apropriado
+      if (
+        obj.material.texture &&
+        (obj.shader === "texture" || obj.shader === "textureLight")
+      ) {
+        this.#activeShader.bindTexture(obj.material.texture, "uTexture", 0);
+      }
+
+      // Se o material tiver outros atributos, como shininess, defina-os aqui
+      // Exemplo: this.#activeShader.setUniform1f("uShininess", obj.material.shininess);
+
+      // Aplique os uniforms adicionais do material
+      obj.material.apply(this.gl, this.#activeShader);
     }
 
     const model = obj.getModelMatrix();

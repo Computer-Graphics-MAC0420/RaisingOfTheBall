@@ -5,6 +5,7 @@ import "./style.css";
 import { Cube, Plain, Sphere } from "./meshes";
 import { isKeyPressed } from "./keyboard";
 import Texture from "./texture";
+import Material from "./material";
 
 const CAMERA_SPEED = 0.001;
 const lightPos = vec3(-4, 0, 2);
@@ -12,10 +13,29 @@ const lightPos = vec3(-4, 0, 2);
 let hAngle = 0;
 let vAngle = 0;
 
+// Criar materiais para os diferentes objetos
+const lightMaterial = new Material({
+  shader: "light",
+  shininess: 24.0,
+});
+
+const normalMaterial = new Material({
+  shader: "normal",
+});
+
+const defaultMaterial = new Material({
+  shader: "default",
+});
+
+const floorMaterial = new Material({
+  shader: "light",
+  shininess: 8.0,
+});
+
 const obj1 = new Object3D({
   position: vec3(-0.7, 0, 0),
   rotationSpeed: vec3(0.1, 0, 0),
-  shader: "light",
+  material: lightMaterial,
   mesh: new Cube({
     size: 1.5,
   }),
@@ -24,7 +44,7 @@ const obj1 = new Object3D({
 const obj2 = new Object3D({
   position: vec3(0, 0, 1.7),
   rotationSpeed: vec3(-0.1, 0, 0),
-  shader: "normal",
+  material: normalMaterial,
   mesh: new Cube({
     size: 0.5,
   }),
@@ -33,7 +53,7 @@ const obj2 = new Object3D({
 const sphere = new Object3D({
   position: vec3(-0.7, 1.8, 0),
   rotationSpeed: vec3(0.01, 0.01, 0),
-  shader: "light",
+  material: lightMaterial,
   mesh: new Sphere({
     density: 6,
     smooth: true,
@@ -42,7 +62,7 @@ const sphere = new Object3D({
 
 const lightGismo = new Object3D({
   position: lightPos,
-  shader: "default",
+  material: defaultMaterial,
   mesh: new Sphere({
     density: 0,
     size: 0.1,
@@ -51,7 +71,7 @@ const lightGismo = new Object3D({
 
 const floor = new Object3D({
   position: vec3(0, -1, 0),
-  shader: "light",
+  material: floorMaterial,
   mesh: new Plain({
     width: 10,
     height: 10,
@@ -70,28 +90,38 @@ engine.init().then(() => {
   // Criar uma textura para o cubo texturizado
   const dirtTexture = new Texture(engine.gl, "./src/assets/dirt.png");
 
+  // Criar materiais para os objetos
+  const dirtMaterial = new Material({
+    shader: "texture",
+    texture: dirtTexture,
+  });
+
+  const textureLightMaterial = new Material({
+    shader: "textureLight",
+    texture: dirtTexture,
+    shininess: 32.0,
+  });
+
   // Criar um cubo texturizado sem iluminação
   const texturedCube = new Object3D({
     position: vec3(-1.7, 0, 0),
     // rotationSpeed: vec3(0, 0.1, 0),
-    shader: "texture",
     mesh: new Cube({
       size: 1.0,
       color: vec4(1, 1, 1, 1), // Cor branca para não afetar a textura
     }),
-    texture: dirtTexture,
+    material: dirtMaterial,
   });
 
   // Criar um cubo texturizado com iluminação
   const textureLightCube = new Object3D({
     position: vec3(3.2, 0, 0),
     rotationSpeed: vec3(0.05, 0.1, 0.05),
-    shader: "textureLight",
     mesh: new Cube({
       size: 1.0,
       color: vec4(1, 1, 1, 1),
     }),
-    texture: dirtTexture,
+    material: textureLightMaterial,
   });
 
   engine.addObject(obj1);
