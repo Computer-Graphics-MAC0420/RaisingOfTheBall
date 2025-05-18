@@ -101,6 +101,8 @@ class Engine {
   render() {
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
+    this.renderObject(this.#light);
+
     for (const obj of Object.values(this.#objects)) {
       this.renderObject(obj);
     }
@@ -135,7 +137,9 @@ class Engine {
     const gl = this.gl;
 
     this.#camera = new Camera();
-    this.#light = new Light();
+    this.#light = new Light({
+      showGizmo: true, //! Remove this if you don't want to show the light gizmo
+    });
 
     this.resize(window.innerWidth, window.innerHeight);
     gl.clearColor(...this.#background);

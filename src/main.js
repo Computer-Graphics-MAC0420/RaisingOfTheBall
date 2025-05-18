@@ -56,15 +56,6 @@ const sphere = new Object3D({
   }),
 });
 
-const lightGismo = new Object3D({
-  position: lightPos,
-  material: defaultMaterial,
-  mesh: new Sphere({
-    density: 0,
-    size: 0.1,
-  }),
-});
-
 const floor = new Object3D({
   position: vec3(0, -1, 0),
   material: new Solid({
@@ -126,7 +117,6 @@ engine.init().then(() => {
   engine.addObject(obj1);
   engine.addObject(obj2);
   engine.addObject(sphere);
-  engine.addObject(lightGismo);
   engine.addObject(floor);
   engine.addObject(texturedCube);
   engine.addObject(textureLightCube);
