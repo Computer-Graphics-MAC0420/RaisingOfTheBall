@@ -53,6 +53,7 @@ function crieEsferaUV(slices = 32, stacks = 16) {
       const second = first + slices + 1;
 
       // Dois triângulos formam um quadrilátero
+      // Garantindo que os vértices estão na ordem anti-horária para face frontal
       // Primeiro triângulo
       indices.push(first);
       indices.push(second);
@@ -90,8 +91,14 @@ class SphereUV extends Mesh {
     let finalTexCoords = texCoords;
 
     if (smooth) {
-      // Para renderização suave, as normais são os próprios vértices normalizados (esfera unitária)
-      normals = vertices.map(normalize);
+      // Para renderização suave, calculamos as normais diretamente das posições dos vértices
+      // Em uma esfera, a normal em cada ponto é o vetor normalizado da origem até o ponto
+      // Como a esfera original é unitária, podemos usar os vértices originais como normais
+      // Mas para garantir vetores unitários corretos, normalizamos explicitamente
+      normals = scaledVertices.map((v) => {
+        // Normaliza cada vetor para garantir que seja unitário
+        return normalize(vec3(v[0], v[1], v[2]));
+      });
     } else {
       // Para renderização "flat", calculamos normais por face
       normals = generateFlatNormals(scaledVertices, indices);
