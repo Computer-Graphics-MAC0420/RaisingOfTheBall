@@ -18,16 +18,18 @@ out vec3 vLight;
 out vec3 vView;
 
 void main() {
-    mat4 modelView = uView * uModel; // matriz de transformação
-    vec4 pos = modelView * vec4(aPosition, 1);
+    vec4 worldPos = uModel * vec4(aPosition, 1.0f); // posição do vértice no espaço do modelo
+    vec4 screenPos = uView * worldPos; // posição do vértice no espaço da tela
+    vec4 clipPos = uPerspective * screenPos; // posição do vértice no espaço de recorte
+    gl_Position = clipPos;
 
-    mat4 uInverseTranspose = transpose(inverse(modelView));
+    mat4 mModelView = uView * uModel; // matriz de transformação
+    mat4 uInverseTranspose = transpose(inverse(mModelView));
 
-    gl_Position = uPerspective * pos;
     vvNormal = aNormal; // normal não interpolada
+    vColor = aColor; // Solid color
 
-    vColor = aColor; 
-    vNormal = mat3(uInverseTranspose) * aNormal;
-    vLight = (uView * vec4(uLightPos, 1) - pos).xyz;
-    vView = -pos.xyz; // vetor de visão
+    vNormal = normalize(mat3(uInverseTranspose) * aNormal);
+    vLight = normalize((uView * vec4(uLightPos, 1) - screenPos).xyz);
+    vView = normalize(-screenPos.xyz); // vetor de visão
 }
