@@ -2,7 +2,7 @@ import Engine from "./engine";
 import Object3D from "./object3d";
 import "./style.css";
 
-import { Cube, Plain, Sphere } from "./meshes";
+import { Cube, Plain, Sphere, SphereUV } from "./meshes";
 import { isKeyPressed } from "./keyboard";
 import Texture from "./texture";
 import Material from "./material";
@@ -67,18 +67,25 @@ const engine = new Engine();
 engine.init().then(() => {
   console.log("Engine initialized");
 
+  // Load the textures
+  const earthTexture = new Texture(engine.gl, "./src/assets/earth-map.jpg");
+  const dirtTexture = new Texture(engine.gl, "./src/assets/dirt.png");
+
   engine.camera.position = vec3(-5, 0, 0);
   engine.light.position = lightPos;
   engine.light.color = lightColor;
-
-  // Criar uma textura para o cubo texturizado
-  const dirtTexture = new Texture(engine.gl, "./src/assets/dirt.png");
 
   // Criar materiais para os objetos
   const dirtMaterial = new Material({
     shader: "textureLight",
     texture: dirtTexture,
     specularFactor: 0.0,
+  });
+
+  const earthMaterial = new Material({
+    shader: "textureLight",
+    texture: earthTexture,
+    specularFactor: 0.2,
   });
 
   // Criar um cubo texturizado sem iluminação
@@ -103,9 +110,22 @@ engine.init().then(() => {
     material: dirtMaterial,
   });
 
+  const earth = new Object3D({
+    position: vec3(-3, 0, -3),
+    rotationSpeed: vec3(0, 0.01, 0),
+    mesh: new SphereUV({
+      segments: 32,
+      rings: 16,
+      size: 1,
+      smooth: true,
+    }),
+    material: earthMaterial,
+  });
+
   engine.addObject(obj1);
   engine.addObject(obj2);
   engine.addObject(sphere);
+  engine.addObject(earth);
   engine.addObject(floor);
   engine.addObject(texturedCube);
   engine.addObject(textureLightCube);

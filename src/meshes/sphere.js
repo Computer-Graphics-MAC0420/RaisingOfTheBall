@@ -5,6 +5,31 @@ import {
   generateSmoothNormals,
 } from "../utils";
 
+/**
+ * Converts Cartesian 3D coordinates to spherical/polar coordinates
+ * @param {Array} v - The 3D vector in Cartesian coordinates [x, y, z]
+ * @returns {Array} - Spherical coordinates [r, theta, phi]
+ *                    r: radial distance
+ *                    theta: polar angle (in radians) from z-axis
+ *                    phi: azimuthal angle (in radians) in the x-y plane
+ */
+function cartesianToPolar(v) {
+  const x = v[0];
+  const y = v[1];
+  const z = v[2];
+
+  // Calculate radius (distance from origin)
+  const r = Math.sqrt(x * x + y * y + z * z);
+
+  // Calculate polar angle (theta) from z-axis
+  const theta = Math.acos(z / r);
+
+  // Calculate azimuthal angle (phi) in the x-y plane
+  const phi = Math.atan2(y, x);
+
+  return [r, theta, phi];
+}
+
 function crieEsfera(ndivisoes = 2) {
   // começamos com os vértices de um balão
   const vertices = [];
@@ -107,7 +132,28 @@ class Sphere extends Mesh {
     const colors = Array(vertices.length)
       .fill(0)
       .map(() => vec4(color));
-    super({ vertices, colors, normals, indices, useIndices });
+
+    const texCoords = vertices.map((vert) => {
+      // Normalizando o vetor (que já deve estar normalizado, mas para garantir)
+      const norm = normalize(vert);
+      const x = norm[0];
+      const y = norm[1];
+      const z = norm[2];
+
+      // Usando uma abordagem diferente para calcular as coordenadas UV
+      // baseada diretamente nas coordenadas cartesianas normalizadas
+
+      // Calculando longitude (U) - mapeando atan2 de [-π, π] para [0, 1]
+      let u = 0.5 + Math.atan2(z, x) / (2 * Math.PI);
+
+      // Calculando latitude (V) - mapeando asin de [-π/2, π/2] para [0, 1]
+      // e invertendo para que o norte fique no topo
+      let v = 0.5 - Math.asin(y) / Math.PI;
+
+      return vec2(2 - u, v);
+    });
+
+    super({ vertices, colors, normals, indices, texCoords, useIndices });
   }
 }
 

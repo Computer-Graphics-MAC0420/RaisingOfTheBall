@@ -32,12 +32,6 @@ class Solid extends Material {
 
     // Inicializa as propriedades privadas
     this.#color = color;
-
-    console.log("Factors", {
-      diffuseFactor: this.#diffuseFactor,
-      specularFactor: this.#specularFactor,
-      ambientFactor: this.#ambientFactor,
-    });
   }
 
   /**
