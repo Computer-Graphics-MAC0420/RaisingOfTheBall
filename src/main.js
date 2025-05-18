@@ -53,7 +53,7 @@ const sphere = new Object3D({
 const floor = new Object3D({
   position: vec3(0, -1, 0),
   material: new Solid({
-    color: rgb(110, 55, 10),
+    color: rgb(185, 185, 185),
   }),
   mesh: new Plain({
     width: 10,
@@ -78,12 +78,7 @@ engine.init().then(() => {
   const dirtMaterial = new Material({
     shader: "textureLight",
     texture: dirtTexture,
-  });
-
-  const textureLightMaterial = new Material({
-    shader: "textureLight",
-    texture: dirtTexture,
-    shininess: 32.0,
+    specularFactor: 0.0,
   });
 
   // Criar um cubo texturizado sem iluminação
@@ -105,7 +100,7 @@ engine.init().then(() => {
       size: 1.0,
       color: vec4(1, 1, 1, 1),
     }),
-    material: textureLightMaterial,
+    material: dirtMaterial,
   });
 
   engine.addObject(obj1);

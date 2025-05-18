@@ -10,7 +10,6 @@ import Material from "../material.js";
 class Solid extends Material {
   // Propriedades privadas com valores padrão
   #color;
-  #shininess;
   #diffuseFactor = 0.5;
   #specularFactor = 0.5;
   #ambientFactor = 0.2;
@@ -25,15 +24,14 @@ class Solid extends Material {
    * @param {number} [options.ambientFactor=0.2] - Intensidade da luz ambiente
    * @param {string} [options.shader="light"] - Shader a ser usado
    */
-  constructor({ color = rgb(255, 255, 255), shininess = 64.0 } = {}) {
+  constructor(options = {}) {
+    const { color } = options;
+
     // Chama o construtor da classe pai com o shader e outras propriedades
-    super({
-      shader: "solid",
-    });
+    super(options);
 
     // Inicializa as propriedades privadas
     this.#color = color;
-    this.#shininess = shininess;
 
     console.log("Factors", {
       diffuseFactor: this.#diffuseFactor,
@@ -48,14 +46,6 @@ class Solid extends Material {
    */
   get color() {
     return this.#color;
-  }
-
-  /**
-   * Obtém o brilho do material
-   * @returns {number} Valor do brilho
-   */
-  get shininess() {
-    return this.#shininess;
   }
 
   /**
@@ -92,12 +82,6 @@ class Solid extends Material {
     if (shader.program) {
       // Aplica a cor do material
       shader.setUniform4fv("uSolidColor", this.#color);
-
-      // Aplica os fatores de iluminação
-      shader.setUniform1f("uShininess", this.#shininess);
-      shader.setUniform1f("uDiffuseFactor", this.#diffuseFactor);
-      shader.setUniform1f("uSpecularFactor", this.#specularFactor);
-      shader.setUniform1f("uAmbientFactor", this.#ambientFactor);
     }
 
     // Chama o método apply da classe pai para aplicar outras propriedades

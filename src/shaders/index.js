@@ -4,8 +4,8 @@ import normalFragmentShaderSrc from "./fragment.normal.glsl?raw";
 import lightFragmentShaderSrc from "./fragment.light.glsl?raw";
 import textureVertexShaderSrc from "./vertex.texture.glsl?raw";
 import textureFragmentShaderSrc from "./fragment.texture.glsl?raw";
-import textureLightVertexShaderSrc from "./vertex.texture.light.glsl?raw";
-import textureLightFragmentShaderSrc from "./fragment.texture.light.glsl?raw";
+import texturedVertexShaderSrc from "./textured.vs?raw";
+import texturedFragmentShaderSrc from "./textured.fs?raw";
 import solidFragmentShaderSrc from "./solid.fs?raw";
 
 export const DEFAULT_SHADER = "default";
@@ -75,8 +75,8 @@ const texture = {
 };
 
 const textureLight = {
-  vertexSrc: textureLightVertexShaderSrc,
-  fragmentSrc: textureLightFragmentShaderSrc,
+  vertexSrc: texturedVertexShaderSrc,
+  fragmentSrc: texturedFragmentShaderSrc,
   attributes: {
     aPosition: { size: 3 },
     aNormal: { size: 3 },
@@ -89,6 +89,10 @@ const textureLight = {
     "uLightPos",
     "uTexture",
     "uLightColor",
+    "uShininess",
+    "uAmbientFactor",
+    "uDiffuseFactor",
+    "uSpecularFactor",
   ],
 };
 

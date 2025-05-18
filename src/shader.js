@@ -390,18 +390,8 @@ class Shader {
    * @param {Light} light - A fonte de luz
    */
   bindLight(light) {
-    // Envia a posição da luz para o shader
-    if (light.position) {
-      this.setUniform3fv("uLightPos", light.position);
-    }
-
-    // Envia a cor da luz para o shader se disponível
-    if (light.color) {
-      this.setUniform4fv("uLightColor", light.color);
-    }
-
-    // Outras propriedades da luz podem ser adicionadas aqui
-    // por exemplo: intensidade, atenuação, etc.
+    this.setUniform3fv("uLightPos", light.position);
+    this.setUniform4fv("uLightColor", light.color);
   }
 
   /**
