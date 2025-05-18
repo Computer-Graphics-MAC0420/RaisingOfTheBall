@@ -185,21 +185,31 @@ class Shader {
   }
 
   /**
+   * Obtém a localização de um uniform
+   * @param {string} name - Nome do uniform
+   * @return {WebGLUniformLocation|null} A localização do uniform ou null se não encontrado
+   */
+  getLocation(name) {
+    const location = this.#uniforms[name];
+    if (location === undefined) {
+      return null;
+    }
+    if (location === null) {
+      console.warn(`Uniform '${name}' não encontrado no shader`);
+      return null;
+    }
+
+    return location;
+  }
+
+  /**
    * Define o valor de um uniform do tipo matriz 4x4
    * @param {string} name - Nome do uniform
    * @param {boolean} transpose - Se a matriz deve ser transposta
    * @param {Float32Array} value - Valor da matriz
    */
   setUniformMatrix4fv(name, transpose, value) {
-    const location = this.#uniforms[name];
-    if (location === undefined) {
-      return;
-    }
-    if (location === null) {
-      console.warn(`Uniform '${name}' não encontrado no shader`);
-      return;
-    }
-
+    const location = this.getLocation(name);
     this.#gl.uniformMatrix4fv(location, transpose, value);
   }
 
@@ -209,15 +219,7 @@ class Shader {
    * @param {Float32Array|Array} value - Valor do vetor (3 componentes)
    */
   setUniform3fv(name, value) {
-    const location = this.#uniforms[name];
-    if (location === undefined) {
-      return;
-    }
-    if (location === null) {
-      console.warn(`Uniform '${name}' não encontrado no shader`);
-      return;
-    }
-
+    const location = this.getLocation(name);
     this.#gl.uniform3fv(location, value);
   }
 
@@ -227,15 +229,7 @@ class Shader {
    * @param {Float32Array|Array} value - Valor do vetor (4 componentes)
    */
   setUniform4fv(name, value) {
-    const location = this.#uniforms[name];
-    if (location === undefined) {
-      return;
-    }
-    if (location === null) {
-      console.warn(`Uniform '${name}' não encontrado no shader`);
-      return;
-    }
-
+    const location = this.getLocation(name);
     this.#gl.uniform4fv(location, value);
   }
 
@@ -245,16 +239,18 @@ class Shader {
    * @param {number} value - Valor do inteiro
    */
   setUniform1i(name, value) {
-    const location = this.#uniforms[name];
-    if (location === undefined) {
-      return;
-    }
-    if (location === null) {
-      console.warn(`Uniform '${name}' não encontrado no shader`);
-      return;
-    }
-
+    const location = this.getLocation(name);
     this.#gl.uniform1i(location, value);
+  }
+
+  /**
+   * Define o valor de um uniform do tipo ponto flutuante
+   * @param {string} name - Nome do uniform
+   * @param {number} value - Valor do float
+   */
+  setUniform1f(name, value) {
+    const location = this.getLocation(name);
+    this.#gl.uniform1f(location, value);
   }
 
   /**

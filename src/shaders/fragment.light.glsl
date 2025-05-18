@@ -10,7 +10,6 @@ in vec3 vLight;
 
 // Uniforms para propriedades da luz
 uniform vec4 uLightColor; // Cor da luz (padrão: branco)
-vec3 lightColor = vec3(0.5f, 0.5f, 0.5f);
 
 float uAlfaEsp = 500.0f; // Aumentando o expoente especular (reduz a área do brilho)
 float kAmbient = 0.2f;
@@ -18,10 +17,10 @@ float kDiffuse = 0.5f;
 float kSpecular = 0.5f;
 
 // Colors
-vec4 materialColor = vec4(0.09f, 0.51f, 0.05f, 1.0f); // Reduzindo a intensidade da cor do material
-vec4 uSpecularColor = vec4(0.5f, 0.5f, 0.5f, 1.0f); // Reduzindo a intensidade do brilho especular
+vec4 materialColor = vec4(1.0f); // Reduzindo a intensidade da cor do material
 
 void main() {
+  vec3 lightColor = uLightColor.rgb;
   vec3 normalV = normalize(vNormal);
   vec3 lightV = normalize(vLight);
   vec3 viewV = normalize(vView);

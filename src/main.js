@@ -6,9 +6,12 @@ import { Cube, Plain, Sphere } from "./meshes";
 import { isKeyPressed } from "./keyboard";
 import Texture from "./texture";
 import Material from "./material";
+import { rgb } from "./colors";
+import { Solid } from "./materials";
 
 const CAMERA_SPEED = 0.001;
 const lightPos = vec3(-4, 0, 2);
+const lightColor = rgb(255, 255, 255);
 
 let hAngle = 0;
 let vAngle = 0;
@@ -19,23 +22,14 @@ const lightMaterial = new Material({
   shininess: 24.0,
 });
 
-const normalMaterial = new Material({
-  shader: "normal",
-});
-
-const defaultMaterial = new Material({
-  shader: "default",
-});
-
-const floorMaterial = new Material({
-  shader: "light",
-  shininess: 8.0,
+const defaultMaterial = new Solid({
+  color: rgb(204, 83, 83),
 });
 
 const obj1 = new Object3D({
   position: vec3(-0.7, 0, 0),
   rotationSpeed: vec3(0.1, 0, 0),
-  material: lightMaterial,
+  material: defaultMaterial,
   mesh: new Cube({
     size: 1.5,
   }),
@@ -44,7 +38,7 @@ const obj1 = new Object3D({
 const obj2 = new Object3D({
   position: vec3(0, 0, 1.7),
   rotationSpeed: vec3(-0.1, 0, 0),
-  material: normalMaterial,
+  material: defaultMaterial,
   mesh: new Cube({
     size: 0.5,
   }),
@@ -71,7 +65,9 @@ const lightGismo = new Object3D({
 
 const floor = new Object3D({
   position: vec3(0, -1, 0),
-  material: floorMaterial,
+  material: new Solid({
+    color: rgb(110, 55, 10),
+  }),
   mesh: new Plain({
     width: 10,
     height: 10,
@@ -86,6 +82,7 @@ engine.init().then(() => {
 
   engine.camera.position = vec3(-5, 0, 0);
   engine.light.position = lightPos;
+  engine.light.color = lightColor;
 
   // Criar uma textura para o cubo texturizado
   const dirtTexture = new Texture(engine.gl, "./src/assets/dirt.png");
@@ -104,7 +101,7 @@ engine.init().then(() => {
 
   // Criar um cubo texturizado sem iluminação
   const texturedCube = new Object3D({
-    position: vec3(-1.7, 0, 0),
+    position: vec3(-1.7, 0, 1.0),
     // rotationSpeed: vec3(0, 0.1, 0),
     mesh: new Cube({
       size: 1.0,
