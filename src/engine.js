@@ -283,17 +283,6 @@ class Engine {
 
     // Se o objeto tiver um material, aplique-o
     if (obj.material) {
-      // Vincula a textura se o material tiver uma e estiver usando um shader apropriado
-      if (
-        obj.material.texture &&
-        (obj.shader === "texture" || obj.shader === "textureLight")
-      ) {
-        this.#activeShader.bindTexture(obj.material.texture, "uTexture", 0);
-      }
-
-      // Se o material tiver outros atributos, como shininess, defina-os aqui
-      // Exemplo: this.#activeShader.setUniform1f("uShininess", obj.material.shininess);
-
       // Aplique os uniforms adicionais do material
       obj.material.apply(this.gl, this.#activeShader);
     }

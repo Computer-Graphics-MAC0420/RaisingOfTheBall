@@ -1,3 +1,5 @@
+import Texture from "./texture";
+
 /**
  * Classe Material
  *
@@ -9,34 +11,33 @@ export default class Material {
    * Cria uma nova instância de Material
    * @param {Object} options - Opções do material
    * @param {string} [options.shader="default"] - Nome do shader a ser usado
+   * @param {Texture|null} [options.texture=null] - Textura do material
    */
   constructor(options = {}) {
-    const { shader = "default" } = options;
+    const { shader = "default", texture = null } = options;
 
     this.shader = shader;
+    this.texture = texture;
+  }
+
+  /**
+   * Define a textura do material
+   * @param {Object} texture - Textura a ser aplicada
+   */
+  setTexture(texture) {
+    this.texture = texture;
   }
 
   /**
    * Aplica o material ao contexto de renderização
    * @param {Object} gl - Contexto WebGL
-   * @param {Object} program - Programa de shader compilado
+   * @param {Shader} shader - Shader a ser usado para renderização
    */
-  apply(gl, program) {
-    return;
-    // Aplicação básica do material
-    // Esta função pode ser expandida no futuro para configurar
-    // os uniforms necessários com base nas propriedades do material
+  apply(_, shader) {
+    if (!shader.program) return;
 
-    // Exemplo de aplicação de textura
-    if (this.texture && program.uniforms.uSampler) {
-      // Lógica para aplicar a textura
-      // Seria implementada quando o sistema de shaders estiver pronto
-    }
-
-    // Exemplo de aplicação de brilho especular
-    if (program.uniforms.uShininess) {
-      // Lógica para configurar o brilho especular
-      // gl.uniform1f(program.uniforms.uShininess, this.shininess);
+    if (this.texture) {
+      shader.bindTexture(this.texture, "uTexture", 0);
     }
   }
 }

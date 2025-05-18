@@ -16,12 +16,6 @@ const lightColor = rgb(255, 255, 255);
 let hAngle = 0;
 let vAngle = 0;
 
-// Criar materiais para os diferentes objetos
-const lightMaterial = new Material({
-  shader: "light",
-  shininess: 24.0,
-});
-
 const defaultMaterial = new Solid({
   color: rgb(204, 83, 83),
 });
