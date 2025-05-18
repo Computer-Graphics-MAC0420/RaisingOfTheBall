@@ -47,7 +47,9 @@ const obj2 = new Object3D({
 const sphere = new Object3D({
   position: vec3(-0.7, 1.8, 0),
   rotationSpeed: vec3(0.01, 0.01, 0),
-  material: lightMaterial,
+  material: new Solid({
+    color: rgb(30, 117, 218),
+  }),
   mesh: new Sphere({
     density: 6,
     smooth: true,
@@ -157,10 +159,10 @@ function handleMovement(dt) {
   if (isKeyPressed("d")) {
     camera.moveRight(CAMERA_SPEED * dt);
   }
-  if (isKeyPressed("q")) {
+  if (isKeyPressed(" ")) {
     camera.moveUp(CAMERA_SPEED * dt);
   }
-  if (isKeyPressed("e")) {
+  if (isKeyPressed("Shift")) {
     camera.moveDown(CAMERA_SPEED * dt);
   }
   if (isKeyPressed("ArrowUp")) {
