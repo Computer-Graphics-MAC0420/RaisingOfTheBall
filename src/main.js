@@ -68,8 +68,14 @@ engine.init().then(() => {
   console.log("Engine initialized");
 
   // Load the textures
-  const earthTexture = new Texture(engine.gl, "./src/assets/earth-map.jpg");
-  const dirtTexture = new Texture(engine.gl, "./src/assets/dirt.png");
+  const earthTexture = new Texture(engine.gl, "./src/assets/earth-map.jpg", {
+    filter: "LINEAR",
+    mipmap: true,
+  });
+
+  const dirtTexture = new Texture(engine.gl, "./src/assets/dirt.png", {
+    filter: "NEAREST",
+  });
 
   engine.camera.position = vec3(-5, 0, 0);
   engine.light.position = lightPos;

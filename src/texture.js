@@ -20,10 +20,17 @@ class Texture {
   /**
    * @param {WebGL2RenderingContext} gl - Contexto do WebGL
    * @param {string} imagePath - Caminho para a imagem da textura
+   * @param {Object} options - Opções para a textura
+   * @param {string} [options.filter="NEAREST"] - Tipo de filtro da textura: "NEAREST" ou "LINEAR"
+   * @param {boolean} [options.mipmap=false] - Se deve gerar mipmaps
    */
-  constructor(gl, imagePath) {
+  constructor(gl, imagePath, options = {}) {
     this.#gl = gl;
     this.#texture = gl.createTexture();
+
+    // Configurações padrão
+    this.filter = options.filter || "NEAREST";
+    this.mipmap = options.mipmap || false;
 
     // Carregar a imagem
     const image = new Image();
@@ -50,12 +57,27 @@ class Texture {
     // Configuração de parâmetros da textura
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+    // Configura o tipo de filtro com base na opção selecionada
+    const filterType = this.filter === "LINEAR" ? gl.LINEAR : gl.NEAREST;
+    gl.texParameteri(
+      gl.TEXTURE_2D,
+      gl.TEXTURE_MIN_FILTER,
+      this.mipmap
+        ? this.filter === "LINEAR"
+          ? gl.LINEAR_MIPMAP_LINEAR
+          : gl.NEAREST_MIPMAP_NEAREST
+        : filterType
+    );
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filterType);
 
     // Carrega a imagem na textura
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-    // Não geramos mipmaps já que usamos NEAREST e queremos manter o aspecto pixelado
+
+    // Gera mipmaps se necessário
+    if (this.mipmap) {
+      gl.generateMipmap(gl.TEXTURE_2D);
+    }
 
     // Libera o bind da textura
     gl.bindTexture(gl.TEXTURE_2D, null);
