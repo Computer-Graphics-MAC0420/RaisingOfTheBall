@@ -1,9 +1,6 @@
-import defaultVertexShaderSrc from "./vertex.glsl?raw";
+import defaultVertexShaderSrc from "./default.vs?raw";
 import fixedFragmentShaderSrc from "./fixed-color.fs?raw";
-import normalFragmentShaderSrc from "./fragment.normal.glsl?raw";
-import lightFragmentShaderSrc from "./fragment.light.glsl?raw";
-import textureVertexShaderSrc from "./vertex.texture.glsl?raw";
-import textureFragmentShaderSrc from "./fragment.texture.glsl?raw";
+import normalFragmentShaderSrc from "./normal.fs?raw";
 import texturedVertexShaderSrc from "./textured.vs?raw";
 import texturedFragmentShaderSrc from "./textured.fs?raw";
 import solidFragmentShaderSrc from "./solid.fs?raw";
@@ -53,28 +50,7 @@ const normal = {
   uniforms: ["uView", "uModel", "uPerspective", "uLightPos"],
 };
 
-const light = {
-  vertexSrc: defaultVertexShaderSrc,
-  fragmentSrc: lightFragmentShaderSrc,
-  attributes: {
-    aPosition: { size: 3 },
-    aNormal: { size: 3 },
-    aColor: { size: 4 },
-  },
-  uniforms: ["uView", "uModel", "uPerspective", "uLightPos", "uLightColor"],
-};
-
-const texture = {
-  vertexSrc: textureVertexShaderSrc,
-  fragmentSrc: textureFragmentShaderSrc,
-  attributes: {
-    aPosition: { size: 3 },
-    aTexCoord: { size: 2 },
-  },
-  uniforms: ["uView", "uModel", "uPerspective", "uTexture"],
-};
-
-const textureLight = {
+const textured = {
   vertexSrc: texturedVertexShaderSrc,
   fragmentSrc: texturedFragmentShaderSrc,
   attributes: {
@@ -101,7 +77,5 @@ export default {
   solid,
   fixed,
   normal,
-  light,
-  texture,
-  textureLight,
+  textured,
 };

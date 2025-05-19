@@ -102,13 +102,13 @@ engine.init().then(() => {
 
   // Criar materiais para os objetos
   const dirtMaterial = new Material({
-    shader: "textureLight",
+    shader: "textured",
     texture: dirtTexture,
     specularFactor: 0.0,
   });
 
   const earthMaterial = new Material({
-    shader: "textureLight",
+    shader: "textured",
     texture: earthTexture,
     specularFactor: 0.2,
   });
