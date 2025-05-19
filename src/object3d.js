@@ -1,32 +1,31 @@
 import Mesh from "./mesh";
 import AvailableShaders, { DEFAULT_SHADER } from "./shaders";
 import Material from "./material";
-import { getModelMatrix } from "./utils";
+import Transform from "./transform";
 
 /**
  * Representa um objeto 3D no espaço.
  */
 class Object3D {
-  /** @type {vec3} Posição do objeto no espaço 3D */
-  #position = vec3(0, 0, 0);
-  /** @type {vec3} Ângulos de rotação em graus (x, y, z) */
-  #rotation = vec3(0, 0, 0);
-  /** @type {vec3} Escala do objeto em cada eixo */
-  #scale = vec3(1, 1, 1);
+  /** @type {Transform} Transformação do objeto */
+  #transform;
+
   /** @type {vec3} Velocidade do objeto (unidades por segundo) */
   #velocity = vec3(0, 0, 0);
+
   /** @type {vec3} Velocidade de rotação (graus por segundo) */
   #rotationSpeed = vec3(0, 0, 0);
 
   /** @type {Mesh|null} Mesh que define a geometria do objeto */
   #mesh;
+
   /** @type {Material|null} Material do objeto */
   #material = null;
 
   /**
    * Cria um novo objeto 3D.
    * @param {Object} options - Opções de configuração
-   * @param {vec3} [options.position=vec3(0,0,0)] - Posição inicial
+   * @param {Object} [options.transform] - Transformação inicial (position, rotation, scale)
    * @param {vec3} [options.velocity=vec3(0,0,0)] - Velocidade inicial
    * @param {vec3} [options.rotationSpeed=vec3(0,0,0)] - Velocidade de rotação inicial
    * @param {Mesh|null} [options.mesh=null] - Mesh do objeto
@@ -34,14 +33,21 @@ class Object3D {
    * @param {Material|null} [options.material=null] - Material do objeto
    */
   constructor({
-    position = vec3(0, 0, 0),
+    position,
+    rotation,
+    scale,
+    transform = {},
     velocity = vec3(0, 0, 0),
     rotationSpeed = vec3(0, 0, 0),
     mesh = null,
     shader = DEFAULT_SHADER,
     material = null,
   } = {}) {
-    this.position = position;
+    if (position || rotation || scale) {
+      transform = { position, rotation, scale, ...transform };
+    }
+    this.#transform = new Transform(transform);
+
     this.velocity = velocity;
     this.rotationSpeed = rotationSpeed;
 
@@ -61,7 +67,7 @@ class Object3D {
    * @returns {vec3} Posição atual do objeto
    */
   get position() {
-    return this.#position;
+    return this.#transform.position;
   }
 
   /**
@@ -69,7 +75,54 @@ class Object3D {
    * @param {vec3} value - Nova posição
    */
   set position(value) {
-    this.#position = value;
+    this.#transform.position = value;
+  }
+
+  /**
+   * @returns {vec3} Rotação atual do objeto
+   */
+  get rotation() {
+    return this.#transform.rotation;
+  }
+
+  /**
+   * Define a rotação do objeto
+   * @param {vec3} value - Nova rotação
+   */
+  set rotation(value) {
+    this.#transform.rotation = value;
+  }
+
+  /**
+   * @returns {vec3} Escala atual do objeto
+   */
+  get scale() {
+    return this.#transform.scale;
+  }
+
+  /**
+   * Define a escala do objeto
+   * @param {vec3} value - Nova escala
+   */
+  set scale(value) {
+    this.#transform.scale = value;
+  }
+
+  /**
+   * @returns {Transform} Transformação do objeto
+   */
+  get transform() {
+    return this.#transform;
+  }
+
+  /**
+   * Define a transformação do objeto
+   * @param {Transform} value - Nova transformação
+   */
+  set transform(value) {
+    if (value instanceof Transform) {
+      this.#transform = value;
+    }
   }
 
   /**
@@ -141,7 +194,7 @@ class Object3D {
     if (!this.material) {
       this.material = new Material({ shader: value });
     } else {
-      this.material.setShader(value);
+      this.material.shader = value;
     }
   }
 
@@ -165,14 +218,14 @@ class Object3D {
    * @param {number} dt - Delta de tempo em segundos
    */
   update(dt) {
-    this.#position = add(this.#position, mult(dt, this.#velocity));
-    // Update rotation and normalize to keep values between 0 and 2π
-    this.#rotation = add(this.#rotation, mult(dt, this.#rotationSpeed));
-    // Normalize each rotation component
-    this.#rotation = vec3(
-      this.#rotation[0] % 360,
-      this.#rotation[1] % 360,
-      this.#rotation[2] % 360
+    this.position = add(this.position, mult(dt, this.velocity));
+
+    const newRotation = add(this.rotation, mult(dt, this.#rotationSpeed));
+
+    this.rotation = vec3(
+      newRotation[0] % 360,
+      newRotation[1] % 360,
+      newRotation[2] % 360
     );
   }
 
@@ -181,20 +234,14 @@ class Object3D {
    * @returns {mat4} Matriz de modelo para transformação
    */
   getModelMatrix() {
-    const baseModel = getModelMatrix(
-      this.#position,
-      this.#rotation,
-      this.#scale
-    );
+    const baseModel = this.#transform.getModelMatrix();
 
     // Se não tiver mesh, retorna apenas a transformação base
     if (!this.mesh) {
       return baseModel;
     }
 
-    const model = mult(baseModel, this.mesh.getModelMatrix());
-
-    return model;
+    return mult(baseModel, this.mesh.getModelMatrix());
   }
 }
 

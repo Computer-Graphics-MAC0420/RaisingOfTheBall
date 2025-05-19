@@ -1,5 +1,8 @@
-import { getModelMatrix } from "./utils";
+import Transform from "./transform";
 
+/**
+ * Classe que representa uma malha 3D (vertices, cores, normais, etc.)
+ */
 class Mesh {
   #vertices;
   #normals;
@@ -8,10 +11,20 @@ class Mesh {
   #texCoords;
   #useIndices = true;
 
-  #translation = [0, 0, 0];
-  #scale = [1, 1, 1];
-  #rotation = [0, 0, 0];
+  /** @type {Transform} Transformação local do mesh */
+  #transform;
 
+  /**
+   * Cria uma nova instância de Mesh
+   * @param {Object} options - Opções de configuração
+   * @param {Array} [options.vertices=[]] - Array de vértices
+   * @param {Array} [options.normals=[]] - Array de normais
+   * @param {Array} [options.colors=[]] - Array de cores
+   * @param {Array} [options.indices=[]] - Array de índices
+   * @param {Array} [options.texCoords=[]] - Array de coordenadas de textura
+   * @param {boolean} [options.useIndices=true] - Se deve usar índices para renderizar
+   * @param {Object} [options.transform] - Transformação inicial (position, rotation, scale)
+   */
   constructor({
     vertices,
     normals,
@@ -19,120 +32,155 @@ class Mesh {
     indices,
     texCoords,
     useIndices = true,
-  }) {
+    transform = {},
+  } = {}) {
     this.#vertices = vertices || [];
     this.#colors = colors || [];
     this.#indices = indices || [];
     this.#normals = normals || this.calculateNormals();
     this.#texCoords = texCoords || [];
     this.#useIndices = useIndices;
+    this.#transform = new Transform(transform);
   }
 
+  /**
+   * @returns {Array} Array de vértices
+   */
   get vertices() {
     return this.#vertices;
   }
 
+  /**
+   * @returns {Array} Array de cores
+   */
   get colors() {
     return this.#colors;
   }
 
+  /**
+   * @returns {Array} Array de índices
+   */
   get indices() {
     return this.#indices;
   }
 
+  /**
+   * @returns {Array} Array de normais
+   */
   get normals() {
     return this.#normals;
   }
 
+  /**
+   * @returns {Array} Array de coordenadas de textura
+   */
   get texCoords() {
     return this.#texCoords;
   }
 
+  /**
+   * @returns {number} Número de vértices para renderização
+   */
   get numV() {
     return this.#indices.length;
   }
 
+  /**
+   * @returns {boolean} Se deve usar índices para renderizar
+   */
   get useIndices() {
     return this.#useIndices;
   }
 
-  setTranslation(t) {
-    if (Array.isArray(t)) {
-      this.#translation = t;
-    } else {
-      const { x, y, z } = t;
-      if (x) {
-        this.#translation[0] = x;
-      }
-      if (y) {
-        this.#translation[1] = y;
-      }
-      if (z) {
-        this.#translation[2] = z;
-      }
+  /**
+   * @returns {Transform} Objeto de transformação
+   */
+  get transform() {
+    return this.#transform;
+  }
+
+  /**
+   * Define a transformação do mesh
+   * @param {Transform} transform - Nova transformação
+   */
+  set transform(transform) {
+    if (transform instanceof Transform) {
+      this.#transform = transform;
     }
+  }
+
+  /**
+   * Define a posição local do mesh
+   * @param {vec3|Object} position - Nova posição
+   */
+  setPosition(position) {
+    this.#transform.setPosition(position);
+  }
+
+  /**
+   * @returns {vec3} Posição atual do mesh
+   */
+  getPosition() {
+    return this.#transform.position;
+  }
+
+  /**
+   * Define a escala local do mesh
+   * @param {vec3|Object} scale - Nova escala
+   */
+  setScale(scale) {
+    this.#transform.setScale(scale);
+  }
+
+  /**
+   * @returns {vec3} Escala atual do mesh
+   */
+  getScale() {
+    return this.#transform.scale;
+  }
+
+  /**
+   * Define a rotação local do mesh
+   * @param {vec3|Object} rotation - Nova rotação
+   */
+  setRotation(rotation) {
+    this.#transform.setRotation(rotation);
+  }
+
+  /**
+   * @returns {vec3} Rotação atual do mesh
+   */
+  getRotation() {
+    return this.#transform.rotation;
+  }
+
+  // Para compatibilidade com código existente
+  setTranslation(t) {
+    this.setPosition(t);
   }
 
   getTranslation() {
-    return this.#translation;
+    return this.getPosition();
   }
 
-  setScale(scale) {
-    if (Array.isArray(scale)) {
-      this.#scale = scale;
-    } else {
-      const { x, y, z } = scale;
-      if (x) {
-        this.#scale[0] = x;
-      }
-      if (y) {
-        this.#scale[1] = y;
-      }
-      if (z) {
-        this.#scale[2] = z;
-      }
-    }
-  }
-  getScale() {
-    return this.#scale;
-  }
-
-  getRotation() {
-    return this.#rotation;
-  }
-
-  setRotation(rot) {
-    if (Array.isArray(rot)) {
-      this.#rotation = rot;
-    } else {
-      const { x, y, z } = rot;
-      if (x) {
-        this.#rotation[0] = x;
-      }
-      if (y) {
-        this.#rotation[1] = y;
-      }
-      if (z) {
-        this.#rotation[2] = z;
-      }
-    }
-  }
-
-  // Método para calcular normais por vértice se não forem fornecidas
+  /**
+   * Método para calcular normais por vértice se não forem fornecidas
+   * @returns {Array} Array de normais calculadas
+   */
   calculateNormals() {
-    if (!this.vertices.length || !this.indices.length) return [];
+    if (!this.#vertices.length || !this.#indices.length) return [];
 
-    const normals = Array(this.vertices.length).fill(vec3(0, 0, 0));
+    const normals = Array(this.#vertices.length).fill(vec3(0, 0, 0));
 
     // Para cada face (triângulo)
-    for (let i = 0; i < this.indices.length; i += 3) {
-      const idx1 = this.indices[i];
-      const idx2 = this.indices[i + 1];
-      const idx3 = this.indices[i + 2];
+    for (let i = 0; i < this.#indices.length; i += 3) {
+      const idx1 = this.#indices[i];
+      const idx2 = this.#indices[i + 1];
+      const idx3 = this.#indices[i + 2];
 
-      const v1 = this.vertices[idx1];
-      const v2 = this.vertices[idx2];
-      const v3 = this.vertices[idx3];
+      const v1 = this.#vertices[idx1];
+      const v2 = this.#vertices[idx2];
+      const v3 = this.#vertices[idx3];
 
       // Calcular vetores da face
       const e1 = subtract(v2, v1);
@@ -151,8 +199,12 @@ class Mesh {
     return normals.map((n) => normalize(n));
   }
 
+  /**
+   * Calcula a matriz de modelo para este mesh
+   * @returns {mat4} Matriz de modelo para transformação
+   */
   getModelMatrix() {
-    return getModelMatrix(this.#translation, this.#rotation, this.#scale);
+    return this.#transform.getModelMatrix();
   }
 }
 
