@@ -87,3 +87,52 @@ export function expandVertices(vertices, indices) {
 
   return expanded;
 }
+
+/**
+ * Converte coordenadas 3D cartesianas para coordenadas polares/esféricas
+ * @param {Array} v - Vetor 3D em coordenadas cartesianas [x, y, z]
+ * @returns {Array} - Coordenadas esféricas [r, theta, phi]
+ *                   r: distância radial (raio)
+ *                   theta: ângulo polar (em radianos) a partir do eixo z positivo
+ *                   phi: ângulo azimutal (em radianos) no plano x-y
+ */
+export function cartesianToPolar(v) {
+  const x = v[0];
+  const y = v[1];
+  const z = v[2];
+
+  // Calcular o raio (distância da origem)
+  const r = Math.sqrt(x * x + y * y + z * z);
+
+  // Evitar divisão por zero
+  if (r === 0) return [0, 0, 0];
+
+  // Calcular o ângulo polar (theta) a partir do eixo z positivo
+  const theta = Math.acos(z / r);
+
+  // Calcular o ângulo azimutal (phi) no plano x-y
+  const phi = Math.atan2(y, x);
+
+  return [r, theta, phi];
+}
+
+/**
+ * Converte coordenadas polares/esféricas para coordenadas 3D cartesianas
+ * @param {number} r - Distância radial (raio)
+ * @param {number} theta - Ângulo polar (em radianos) a partir do eixo z
+ * @param {number} phi - Ângulo azimutal (em radianos) no plano x-y
+ * @returns {Array} - Vetor 3D em coordenadas cartesianas [x, y, z]
+ */
+export function polarToCartesian(r, theta, phi) {
+  const sinTheta = Math.sin(theta);
+  const cosTheta = Math.cos(theta);
+  const sinPhi = Math.sin(phi);
+  const cosPhi = Math.cos(phi);
+
+  // Conversão de coordenadas polares para cartesianas
+  const x = r * sinTheta * cosPhi;
+  const y = r * sinTheta * sinPhi;
+  const z = r * cosTheta;
+
+  return vec3(x, y, z);
+}

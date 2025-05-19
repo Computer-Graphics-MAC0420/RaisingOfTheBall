@@ -1,9 +1,5 @@
 import Mesh from "../mesh";
-import {
-  expandVertices,
-  generateFlatNormals,
-  generateSmoothNormals,
-} from "../utils";
+import { expandVertices, generateFlatNormals } from "../utils";
 
 /**
  * Gera uma esfera UV com coordenadas de textura otimizadas.
@@ -91,14 +87,9 @@ class SphereUV extends Mesh {
     let finalTexCoords = texCoords;
 
     if (smooth) {
-      // Para renderização suave, calculamos as normais diretamente das posições dos vértices
-      // Em uma esfera, a normal em cada ponto é o vetor normalizado da origem até o ponto
-      // Como a esfera original é unitária, podemos usar os vértices originais como normais
-      // Mas para garantir vetores unitários corretos, normalizamos explicitamente
-      normals = scaledVertices.map((v) => {
-        // Normaliza cada vetor para garantir que seja unitário
-        return normalize(vec3(v[0], v[1], v[2]));
-      });
+      // Para renderização suave, as normais são os próprios vértices normalizados (esfera unitária)
+      // Importante: Normalizamos os vértices originais não escalados para obter normais corretas
+      normals = finalVertices.map((v) => normalize(v));
     } else {
       // Para renderização "flat", calculamos normais por face
       normals = generateFlatNormals(scaledVertices, indices);
