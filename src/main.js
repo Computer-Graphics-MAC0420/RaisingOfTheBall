@@ -8,6 +8,7 @@ import Texture from "./texture";
 import Material from "./material";
 import { rgb } from "./colors";
 import { Solid } from "./materials";
+import { cartesianToPolar } from "./utils";
 
 const CAMERA_SPEED = 0.001;
 const lightPos = vec3(-4, 0, 2);
@@ -15,6 +16,28 @@ const lightColor = rgb(255, 255, 255);
 
 let hAngle = 0;
 let vAngle = 0;
+
+/**
+ * Faz a câmera olhar para um ponto específico no espaço 3D
+ * @param {Object} camera - Objeto da câmera
+ * @param {Array|Object3D} target - Ponto alvo ou objeto 3D para onde a câmera deve olhar
+ */
+function lookAtPoint(camera, target) {
+  const targetPosition = target.position ? target.position : target;
+
+  const cameraPos = camera.position;
+  const direction = subtract(targetPosition, cameraPos);
+
+  const x = direction[0];
+  const y = direction[1];
+  const z = direction[2];
+
+  hAngle = Math.atan2(z, x);
+  const horizontalDistance = Math.sqrt(x * x + z * z);
+  vAngle = Math.atan2(y, horizontalDistance);
+
+  camera.lookTo(hAngle, vAngle);
+}
 
 const defaultMaterial = new Solid({
   color: rgb(204, 83, 83),
@@ -77,10 +100,6 @@ engine.init().then(() => {
     filter: "NEAREST",
   });
 
-  engine.camera.position = vec3(-5, 0, 0);
-  engine.light.position = lightPos;
-  engine.light.color = lightColor;
-
   // Criar materiais para os objetos
   const dirtMaterial = new Material({
     shader: "textureLight",
@@ -136,9 +155,41 @@ engine.init().then(() => {
   engine.addObject(texturedCube);
   engine.addObject(textureLightCube);
 
+  engine.camera.position = vec3(-5, 3, 3);
+  lookAtPoint(engine.camera, obj1);
+
+  engine.light.position = lightPos;
+  engine.light.color = lightColor;
+
   window.addEventListener("keydown", (event) => {
     if (event.key === " ") {
       console.log("Camera: ", engine.camera.position, engine.camera.lookingAt);
+    }
+
+    // Focar diferentes objetos com teclas numéricas
+    if (event.key === "1") {
+      console.log("Olhando para o cubo vermelho (obj1)");
+      lookAtPoint(engine.camera, obj1);
+    }
+    if (event.key === "2") {
+      console.log("Olhando para o cubo pequeno (obj2)");
+      lookAtPoint(engine.camera, obj2);
+    }
+    if (event.key === "3") {
+      console.log("Olhando para a esfera azul");
+      lookAtPoint(engine.camera, sphere);
+    }
+    if (event.key === "4") {
+      console.log("Olhando para a Terra");
+      lookAtPoint(engine.camera, earth);
+    }
+    if (event.key === "5") {
+      console.log("Olhando para o cubo com textura");
+      lookAtPoint(engine.camera, texturedCube);
+    }
+    if (event.key === "0") {
+      console.log("Olhando para a origem");
+      lookAtPoint(engine.camera, vec3(0, 0, 0));
     }
   });
 
