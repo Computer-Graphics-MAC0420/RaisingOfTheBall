@@ -11,6 +11,7 @@ import { Solid } from "./materials";
 import { cartesianToPolar } from "./utils";
 
 const CAMERA_SPEED = 0.001;
+const LIGHT_SPEED = 0.005; // Velocidade de movimento da luz
 const lightPos = vec3(-4, 0, 2);
 const lightColor = rgb(255, 255, 255);
 
@@ -158,6 +159,7 @@ engine.init().then(() => {
   engine.camera.position = vec3(-5, 3, 3);
   lookAtPoint(engine.camera, obj1);
 
+  // Configurar a luz com opção para mostrar o gizmo (representação visual)
   engine.light.position = lightPos;
   engine.light.color = lightColor;
 
@@ -190,6 +192,17 @@ engine.init().then(() => {
     if (event.key === "0") {
       console.log("Olhando para a origem");
       lookAtPoint(engine.camera, vec3(0, 0, 0));
+    }
+
+    // Tecla L para mostrar a posição atual da luz
+    if (event.key === "p") {
+      console.log("Posição da luz:", engine.light.position);
+    }
+
+    // Tecla 6 para olhar para a luz
+    if (event.key === "6") {
+      console.log("Olhando para a fonte de luz");
+      lookAtPoint(engine.camera, engine.light);
     }
   });
 
@@ -234,6 +247,28 @@ function handleMovement(dt) {
     hAngle += 0.01;
   }
   camera.lookTo(hAngle, vAngle);
+
+  // Controles da fonte de luz
+  // Teclas I, J, K, L para mover no plano XZ
+  // Teclas U, O para mover no eixo Y
+  if (isKeyPressed("i")) {
+    engine.light.position[2] -= LIGHT_SPEED * dt; // Mover para frente (Z-)
+  }
+  if (isKeyPressed("k")) {
+    engine.light.position[2] += LIGHT_SPEED * dt; // Mover para trás (Z+)
+  }
+  if (isKeyPressed("j")) {
+    engine.light.position[0] -= LIGHT_SPEED * dt; // Mover para esquerda (X-)
+  }
+  if (isKeyPressed("l")) {
+    engine.light.position[0] += LIGHT_SPEED * dt; // Mover para direita (X+)
+  }
+  if (isKeyPressed("u")) {
+    engine.light.position[1] += LIGHT_SPEED * dt; // Mover para cima (Y+)
+  }
+  if (isKeyPressed("o")) {
+    engine.light.position[1] -= LIGHT_SPEED * dt; // Mover para baixo (Y-)
+  }
 }
 
 window.addEventListener("resize", () => {
