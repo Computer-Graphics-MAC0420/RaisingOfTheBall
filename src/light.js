@@ -6,16 +6,16 @@ class Light extends Object3D {
   #color = vec4(0, 0, 0, 1);
 
   // Parâmetros da perspectiva da luz para shadow mapping
-  #shadowFov = 60;
-  #shadowNear = 0.1;
+  #shadowFov = 90;
+  #shadowNear = 0.5;
   #shadowFar = 100.0;
   #shadowAspect = 1.0; // geralmente 1.0 para shadow map quadrado
 
   constructor({
     color = vec4(1, 1, 1, 1),
     showGizmo = false,
-    shadowFov = 60,
-    shadowNear = 0.1,
+    shadowFov = 90,
+    shadowNear = 0.5,
     shadowFar = 100.0,
   } = {}) {
     const options = {};
@@ -52,9 +52,9 @@ class Light extends Object3D {
     // Posição da luz como a origem da visualização
     const eye = this.position;
 
-    // Direcionando para o centro da cena (origem)
-    // Isso faz com que a luz sempre aponte para o centro da cena onde estão os objetos
-    const at = vec3(0, 0, 0);
+    // Direcionando para um ponto levemente abaixo do centro da cena
+    // Isso ajuda a melhorar o cálculo das sombras com projeção em perspectiva
+    const at = vec3(0, -1, 0);
 
     // Vetor "para cima" na cena (eixo Y é para cima em coordenadas do mundo)
     const up = vec3(0, 1, 0);
@@ -68,8 +68,9 @@ class Light extends Object3D {
    * @returns {Array} - Matriz 4x4 de projeção para o shadow mapping
    */
   getProjectionMatrix() {
-    // Usar projeção perspectiva para o shadow mapping
-    // Isso pode ser ajustado para ortogonal se necessário para sombras específicas
+    // Usar projeção em perspectiva para o shadow mapping
+    // Configuração específica para shadow mapping com campo de visão mais amplo
+    // e distância mais próxima adequada para evitar artefatos de sombra
     return perspective(
       this.#shadowFov,
       this.#shadowAspect,

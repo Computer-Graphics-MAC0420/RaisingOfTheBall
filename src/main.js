@@ -116,18 +116,14 @@ engine.init().then(() => {
     specularFactor: 0.2,
   });
 
-  // Criar um cubo texturizado sem iluminação
   const texturedCube = new Object3D({
     position: vec3(-3, 3, 1.0),
-    // rotationSpeed: vec3(0, 0.1, 0),
     mesh: new Cube({
       size: 1.0,
-      color: vec4(1, 1, 1, 1), // Cor branca para não afetar a textura
     }),
     material: dirtMaterial,
   });
 
-  // Criar um cubo texturizado com iluminação
   const textureLightCube = new Object3D({
     position: vec3(3.2, 0, 0),
     rotationSpeed: vec3(0.05, 0.1, 0.05),
