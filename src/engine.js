@@ -55,6 +55,24 @@ class Engine {
   #light;
 
   /**
+   * @private
+   * @type {WebGLFramebuffer} - Framebuffer usado para o shadow mapping
+   */
+  #shadowFramebuffer = null;
+
+  /**
+   * @private
+   * @type {WebGLTexture} - Textura que armazena o depth map
+   */
+  #shadowDepthTexture = null;
+
+  /**
+   * @private
+   * @type {number} - Resolução do shadow map
+   */
+  #shadowMapResolution = 1024;
+
+  /**
    * @type {function(number):void|undefined} - Callback function for update events
    * @param {number} dt - Time delta in milliseconds since the last update
    */
@@ -99,11 +117,122 @@ class Engine {
   }
 
   render() {
-    this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+    // Passo 1: Renderiza a cena do ponto de vista da luz (cria o shadow map)
+    this._renderShadowMap();
 
+    // Passo 2: Renderiza a cena do ponto de vista da câmera, usando o shadow map
+    this._renderScene();
+  }
+
+  /**
+   * Renderiza o shadow map do ponto de vista da luz
+   * @private
+   */
+  _renderShadowMap() {
+    const gl = this.gl;
+
+    // Ativa o framebuffer do shadow map
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.#shadowFramebuffer);
+
+    // Define a viewport para a resolução do shadow map
+    gl.viewport(0, 0, this.#shadowMapResolution, this.#shadowMapResolution);
+
+    // Limpa o depth buffer
+    gl.clear(gl.DEPTH_BUFFER_BIT);
+
+    // Ativa o shader de sombra
+    this.setActiveShader("shadow");
+
+    // Calcula a matriz de transformação do espaço da luz
+    const lightProjection = this.#light.getProjectionMatrix();
+    const lightView = this.#light.getViewMatrix();
+
+    // Define as matrizes para o shader de sombra
+    this.#activeShader.setUniformMatrix4fv("uView", false, flatten(lightView));
+    this.#activeShader.setUniformMatrix4fv(
+      "uPerspective",
+      false,
+      flatten(lightProjection)
+    );
+
+    // Renderiza todos os objetos para o shadow map (sem o próprio gizmo da luz)
+    for (const obj of Object.values(this.#objects)) {
+      this._renderObjectToShadowMap(obj);
+    }
+
+    // Restaura o framebuffer padrão
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+    // Restaura a viewport para o tamanho da tela
+    gl.viewport(0, 0, this.#canvas.width, this.#canvas.height);
+  }
+
+  /**
+   * Renderiza um objeto para o shadow map
+   * @private
+   * @param {Object3D} obj - Objeto a ser renderizado
+   */
+  _renderObjectToShadowMap(obj) {
+    if (!obj.mesh) return;
+
+    const model = obj.getModelMatrix();
+    this.#activeShader.setUniformMatrix4fv("uModel", false, flatten(model));
+
+    // Renderiza apenas usando os vértices (não precisamos de cores, normais, etc.)
+    if (obj.mesh.vertices) {
+      this.#activeShader.bindVertices(obj.mesh.vertices);
+
+      if (obj.mesh.useIndices) {
+        this.#activeShader.bindIndices(obj.mesh.indices);
+        this.gl.drawElements(
+          this.gl.TRIANGLES,
+          obj.mesh.numV,
+          this.gl.UNSIGNED_SHORT,
+          0
+        );
+      } else {
+        this.gl.drawArrays(this.gl.TRIANGLES, 0, obj.mesh.vertices.length / 3);
+      }
+    }
+  }
+
+  /**
+   * Renderiza a cena final usando o shadow map
+   * @private
+   */
+  _renderScene() {
+    const gl = this.gl;
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    // Calcula a matriz de transformação shadow
+    const lightProjection = this.#light.getProjectionMatrix();
+    const lightView = this.#light.getViewMatrix();
+    const lightMatrix = mult(lightProjection, lightView);
+
+    // Renderiza o gizmo da luz, se necessário
     this.renderObject(this.#light);
 
+    // Renderiza todos os objetos com sombra
     for (const obj of Object.values(this.#objects)) {
+      // Antes de renderizar, configura a textura do shadow map
+      if (obj.material) {
+        gl.activeTexture(gl.TEXTURE1); // Use TEXTURE1 para o shadow map
+        gl.bindTexture(gl.TEXTURE_2D, this.#shadowDepthTexture);
+        const shader = this.#shaders[obj.shader];
+
+        if (shader && shader.hasUniform("uShadowMap")) {
+          shader.setUniform1i("uShadowMap", 1); // TEXTURE1
+        }
+
+        if (shader && shader.hasUniform("uLightMatrix")) {
+          shader.setUniformMatrix4fv(
+            "uLightMatrix",
+            false,
+            flatten(lightMatrix)
+          );
+        }
+      }
+
       this.renderObject(obj);
     }
   }
@@ -145,9 +274,68 @@ class Engine {
     gl.clearColor(...this.#background);
     gl.enable(gl.DEPTH_TEST);
 
-    // calcula a matriz de transformação perpectiva (fovy, aspect, near, far)
+    // Inicializando o framebuffer para shadow mapping
+    this._initShadowFramebuffer();
 
     await this._initShaders();
+  }
+
+  /**
+   * Inicializa o framebuffer para o shadow mapping
+   * @private
+   */
+  _initShadowFramebuffer() {
+    const gl = this.gl;
+    const resolution = this.#shadowMapResolution;
+
+    // Cria o framebuffer
+    this.#shadowFramebuffer = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.#shadowFramebuffer);
+
+    // Cria a textura para armazenar os dados de profundidade
+    this.#shadowDepthTexture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, this.#shadowDepthTexture);
+
+    // Configura a textura para armazenar o depth map
+    gl.texImage2D(
+      gl.TEXTURE_2D,
+      0,
+      gl.DEPTH_COMPONENT16, // formato de profundidade
+      resolution,
+      resolution,
+      0,
+      gl.DEPTH_COMPONENT,
+      gl.UNSIGNED_SHORT,
+      null
+    );
+
+    // Configurações da textura
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+    // Anexa a textura ao framebuffer como depth attachment
+    gl.framebufferTexture2D(
+      gl.FRAMEBUFFER,
+      gl.DEPTH_ATTACHMENT,
+      gl.TEXTURE_2D,
+      this.#shadowDepthTexture,
+      0
+    );
+
+    // Já que só precisamos do depth buffer, desabilitamos as cores
+    gl.drawBuffers([gl.NONE]);
+    gl.readBuffer(gl.NONE);
+
+    // Verifica se o framebuffer está completo
+    const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+    if (status !== gl.FRAMEBUFFER_COMPLETE) {
+      console.error("Framebuffer não está completo:", status);
+    }
+
+    // Desvincula o framebuffer para continuar com a renderização normal
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   }
 
   async _initShaders() {

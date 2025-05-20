@@ -386,12 +386,36 @@ class Shader {
   }
 
   /**
-   * Vincula os dados de uma luz ao shader
-   * @param {Light} light - A fonte de luz
+   * Vincula a luz aos uniforms do shader
+   * @param {Light} light - Objeto da luz a ser vinculado
    */
   bindLight(light) {
-    this.setUniform3fv("uLightPos", light.position);
-    this.setUniform4fv("uLightColor", light.color);
+    if (!light) return;
+
+    const lightPos = light.position;
+    const lightColor = light.color;
+
+    // Registra a posição da luz
+    if (this.#uniforms.uLightPos) {
+      this.#gl.uniform3fv(this.#uniforms.uLightPos, flatten(lightPos));
+    }
+
+    // Registra a cor da luz
+    if (this.#uniforms.uLightColor) {
+      this.#gl.uniform4fv(this.#uniforms.uLightColor, flatten(lightColor));
+    }
+
+    // Registra a matriz de transformação da luz para shadow mapping
+    if (this.#uniforms.uLightMatrix) {
+      const lightView = light.getViewMatrix();
+      const lightProj = light.getProjectionMatrix();
+      const lightMatrix = mult(lightProj, lightView);
+      this.#gl.uniformMatrix4fv(
+        this.#uniforms.uLightMatrix,
+        false,
+        flatten(lightMatrix)
+      );
+    }
   }
 
   /**
@@ -409,6 +433,15 @@ class Shader {
     }
 
     this.bindIndices(mesh.indices);
+  }
+
+  /**
+   * Verifica se um uniform está definido no shader
+   * @param {string} name - Nome do uniform
+   * @returns {boolean} - true se o uniform existir, false caso contrário
+   */
+  hasUniform(name) {
+    return this.#uniforms[name] !== undefined && this.#uniforms[name] !== null;
   }
 
   /**

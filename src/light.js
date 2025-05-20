@@ -5,7 +5,19 @@ import Object3D from "./object3d.js";
 class Light extends Object3D {
   #color = vec4(0, 0, 0, 1);
 
-  constructor({ color = vec4(1, 1, 1, 1), showGizmo = false } = {}) {
+  // Parâmetros da perspectiva da luz para shadow mapping
+  #shadowFov = 60;
+  #shadowNear = 0.1;
+  #shadowFar = 100.0;
+  #shadowAspect = 1.0; // geralmente 1.0 para shadow map quadrado
+
+  constructor({
+    color = vec4(1, 1, 1, 1),
+    showGizmo = false,
+    shadowFov = 60,
+    shadowNear = 0.1,
+    shadowFar = 100.0,
+  } = {}) {
     const options = {};
     if (showGizmo) {
       options.mesh = new Sphere({
@@ -19,6 +31,9 @@ class Light extends Object3D {
 
     super(options);
     this.#color = color;
+    this.#shadowFov = shadowFov;
+    this.#shadowNear = shadowNear;
+    this.#shadowFar = shadowFar;
   }
 
   get color() {
@@ -27,6 +42,41 @@ class Light extends Object3D {
 
   set color(value) {
     this.#color = value;
+  }
+
+  /**
+   * Retorna a matriz de visualização da perspectiva da luz
+   * @returns {Array} - Matriz 4x4 da perspectiva da luz
+   */
+  getViewMatrix() {
+    // Posição da luz como a origem da visualização
+    const eye = this.position;
+
+    // Definir um ponto "olhando para baixo" para onde a luz aponta
+    // Estamos assumindo que a luz aponta na direção negativa do eixo Y
+    // Você pode ajustar isso conforme necessário para a sua cena
+    const at = subtract(eye, vec3(0, 1, 0));
+
+    // Vetor "para cima" na cena
+    const up = vec3(0, 0, 1);
+
+    // Criar a matriz de visualização da luz
+    return lookAt(eye, at, up);
+  }
+
+  /**
+   * Retorna a matriz de projeção para o shadow mapping
+   * @returns {Array} - Matriz 4x4 de projeção para o shadow mapping
+   */
+  getProjectionMatrix() {
+    // Usar projeção perspectiva para o shadow mapping
+    // Isso pode ser ajustado para ortogonal se necessário para sombras específicas
+    return perspective(
+      this.#shadowFov,
+      this.#shadowAspect,
+      this.#shadowNear,
+      this.#shadowFar
+    );
   }
 }
 

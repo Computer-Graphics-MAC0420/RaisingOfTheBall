@@ -4,6 +4,8 @@ import normalFragmentShaderSrc from "./normal.fs?raw";
 import texturedVertexShaderSrc from "./textured.vs?raw";
 import texturedFragmentShaderSrc from "./textured.fs?raw";
 import solidFragmentShaderSrc from "./solid.fs?raw";
+import shadowVertexShaderSrc from "./shadow.vs?raw";
+import shadowFragmentShaderSrc from "./shadow.fs?raw";
 
 export const DEFAULT_SHADER = "default";
 
@@ -26,6 +28,8 @@ const solid = {
     "uAmbientFactor",
     "uDiffuseFactor",
     "uSpecularFactor",
+    "uLightMatrix",
+    "uShadowMap",
   ],
 };
 
@@ -69,7 +73,18 @@ const textured = {
     "uAmbientFactor",
     "uDiffuseFactor",
     "uSpecularFactor",
+    "uLightMatrix",
+    "uShadowMap",
   ],
+};
+
+const shadow = {
+  vertexSrc: shadowVertexShaderSrc,
+  fragmentSrc: shadowFragmentShaderSrc,
+  attributes: {
+    aPosition: { size: 3 },
+  },
+  uniforms: ["uView", "uModel", "uPerspective", "uLightMatrix"],
 };
 
 export default {
@@ -78,4 +93,5 @@ export default {
   fixed,
   normal,
   textured,
+  shadow,
 };
