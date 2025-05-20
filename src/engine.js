@@ -224,28 +224,40 @@ class Engine {
     // Renderiza o gizmo da luz, se necessário
     this.renderObject(this.#light);
 
-    // Renderiza todos os objetos com sombra
+    const objByShader = {};
     for (const obj of Object.values(this.#objects)) {
-      // Antes de renderizar, configura a textura do shadow map
       if (obj.material) {
-        gl.activeTexture(gl.TEXTURE1); // Use TEXTURE1 para o shadow map
-        gl.bindTexture(gl.TEXTURE_2D, this.#shadowDepthTexture);
-        const shader = this.#shaders[obj.shader];
-
-        if (shader && shader.hasUniform("uShadowMap")) {
-          shader.setUniform1i("uShadowMap", 1); // TEXTURE1
+        const shaderName = obj.material.shader;
+        if (!objByShader[shaderName]) {
+          objByShader[shaderName] = [];
         }
+        objByShader[shaderName].push(obj);
+      }
+    }
 
-        if (shader && shader.hasUniform("uLightMatrix")) {
-          shader.setUniformMatrix4fv(
-            "uLightMatrix",
-            false,
-            flatten(lightMatrix)
-          );
-        }
+    // Renderiza todos os objetos com sombra
+    for (const [shaderName, objects] of Object.entries(objByShader)) {
+      this.setActiveShader(shaderName);
+
+      // Antes de renderizar, configura a textura do shadow map
+      gl.activeTexture(gl.TEXTURE1); // Use TEXTURE1 para o shadow map
+      gl.bindTexture(gl.TEXTURE_2D, this.#shadowDepthTexture);
+
+      if (this.#activeShader.hasUniform("uShadowMap")) {
+        this.#activeShader.setUniform1i("uShadowMap", 1); // TEXTURE1
       }
 
-      this.renderObject(obj);
+      if (this.#activeShader.hasUniform("uLightMatrix")) {
+        this.#activeShader.setUniformMatrix4fv(
+          "uLightMatrix",
+          false,
+          flatten(lightMatrix)
+        );
+      }
+
+      for (const obj of objects) {
+        this.renderObject(obj);
+      }
     }
   }
 
@@ -464,6 +476,7 @@ class Engine {
   }
 
   renderObject(obj) {
+    const gl = this.gl;
     if (!(obj instanceof Object3D)) {
       throw new Error("obj must be an instance of Object3D");
     }
