@@ -22,7 +22,7 @@ function crieEsfera(ndivisoes = 2) {
   };
 
   const insertTriangle = (a, b, c) => {
-    indices.push(a, b, c);
+    indices.push(c, b, a);
   };
 
   const divideTriangles = (a, b, c, ndivs) => {
