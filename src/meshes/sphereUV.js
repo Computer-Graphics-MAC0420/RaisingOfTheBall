@@ -50,14 +50,14 @@ function crieEsferaUV(slices = 32, stacks = 16) {
 
       // Dois triângulos formam um quadrilátero
       // Garantindo que os vértices estão na ordem anti-horária para face frontal
-      // Primeiro triângulo
+      // Primeiro triângulo (anti-horário)
       indices.push(first);
-      indices.push(second);
       indices.push(first + 1);
+      indices.push(second);
 
-      // Segundo triângulo
-      indices.push(first + 1);
+      // Segundo triângulo (anti-horário)
       indices.push(second);
+      indices.push(first + 1);
       indices.push(second + 1);
     }
   }

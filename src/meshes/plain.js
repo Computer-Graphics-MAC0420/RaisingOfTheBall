@@ -18,7 +18,7 @@ class Plain extends Mesh {
 
     const colors = [vec4(color), vec4(color), vec4(color), vec4(color)];
 
-    const indices = [0, 1, 2, 0, 2, 3];
+    const indices = [2, 1, 0, 3, 2, 0];
 
     super({ vertices, colors, indices, normals });
   }

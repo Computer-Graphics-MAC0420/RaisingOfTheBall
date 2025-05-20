@@ -33,7 +33,7 @@ export function square(a, b, c, d) {
 }
 
 export function getNormal(a, b, c) {
-  const ab = subtract(a, b);
+  const ab = subtract(b, a);
   const ac = subtract(c, a);
   return normalize(cross(ab, ac));
 }

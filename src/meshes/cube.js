@@ -19,12 +19,12 @@ class Cube extends Mesh {
       .map(() => vec4(color));
 
     const indices = [
-      square(0, 1, 2, 3),
-      square(7, 6, 5, 4),
-      square(3, 7, 4, 0),
-      square(5, 6, 2, 1),
-      square(6, 7, 3, 2),
-      square(4, 5, 1, 0),
+      square(3, 2, 1, 0),
+      square(4, 5, 6, 7),
+      square(0, 4, 7, 3),
+      square(1, 2, 6, 5),
+      square(2, 3, 7, 6),
+      square(0, 1, 5, 4),
     ].flat();
 
     const normals = generateFlatNormals(vertices, indices);
