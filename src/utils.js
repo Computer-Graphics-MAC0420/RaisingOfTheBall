@@ -136,3 +136,87 @@ export function polarToCartesian(r, theta, phi) {
 
   return vec3(x, y, z);
 }
+
+/**
+ * Triangula um polígono usando o método de "triangulação em leque"
+ * @param {number[]} vertexIndices - Índices dos vértices do polígono
+ * @returns {number[]} - Índices dos triângulos resultantes da triangulação
+ */
+export function triangulatePolygon(vertexIndices) {
+  const triangles = [];
+
+  // Para um polígono convexo, podemos usar triangulação em leque
+  // onde o primeiro vértice é usado como pivot para todos os triângulos
+  for (let i = 1; i < vertexIndices.length - 1; i++) {
+    // Primeiro vértice do polígono (pivot)
+    triangles.push(vertexIndices[0]);
+
+    // Segundo vértice do triângulo atual
+    triangles.push(vertexIndices[i]);
+
+    // Terceiro vértice do triângulo atual
+    triangles.push(vertexIndices[i + 1]);
+  }
+
+  return triangles;
+}
+
+export function fromObjectFile(content) {
+  const lines = content.split("\n");
+  const vertices = [];
+  const normals = [];
+  const indices = [];
+  const vertexNormals = [];
+
+  for (const line of lines) {
+    const parts = line.trim().split(/\s+/);
+    if (parts[0] === "v") {
+      vertices.push(vec3(...parts.slice(1).map(Number)));
+    } else if (parts[0] === "vn") {
+      normals.push(vec3(...parts.slice(1).map(Number)));
+    } else if (parts[0] === "f") {
+      // Coletamos os índices de vértices da face
+      const faceVertexIndices = [];
+      const faceNormalIndices = [];
+
+      for (let i = 1; i < parts.length; i++) {
+        const vertexData = parts[i].split("/").map(Number);
+        faceVertexIndices.push(vertexData[0] - 1); // OBJ indices são baseados em 1, não 0
+
+        if (vertexData[2]) {
+          faceNormalIndices.push(vertexData[2] - 1);
+        }
+      }
+
+      // Triangulamos o polígono e adicionamos os índices
+      const triangleIndices = triangulatePolygon(faceVertexIndices);
+
+      // Adicionamos os índices dos triângulos
+      for (let i = 0; i < triangleIndices.length; i += 3) {
+        const v0 = triangleIndices[i];
+        const v1 = triangleIndices[i + 1];
+        const v2 = triangleIndices[i + 2];
+
+        indices.push(v0, v1, v2);
+
+        // Se tivermos normais, associamos as mesmas aos vértices
+        if (faceNormalIndices.length > 0) {
+          const n0 = faceNormalIndices[faceVertexIndices.indexOf(v0)];
+          const n1 = faceNormalIndices[faceVertexIndices.indexOf(v1)];
+          const n2 = faceNormalIndices[faceVertexIndices.indexOf(v2)];
+
+          vertexNormals[v0] = normals[n0];
+          vertexNormals[v1] = normals[n1];
+          vertexNormals[v2] = normals[n2];
+        }
+      }
+    }
+  }
+
+  // Se temos normais por vértice, retorne-as, caso contrário retorne as normais originais
+  return {
+    vertices,
+    normals: vertexNormals.length > 0 ? vertexNormals : normals,
+    indices,
+  };
+}
