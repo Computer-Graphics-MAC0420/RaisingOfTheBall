@@ -8,11 +8,12 @@ import Texture from "./texture";
 import Material from "./material";
 import { rgb } from "./colors";
 import { Solid } from "./materials";
-import { cartesianToPolar } from "./utils";
 
-const CAMERA_SPEED = 0.001;
+const CAMERA_SPEED = 0.005;
+const CAMERA_ROTATION_SPEED = 0.02; // Velocidade de rotação da câmera
+
 const LIGHT_SPEED = 0.005; // Velocidade de movimento da luz
-const lightPos = vec3(-4, 0, 2);
+const lightPos = vec3(0, 3, 5);
 const lightColor = rgb(255, 255, 255);
 
 let hAngle = 0;
@@ -46,7 +47,7 @@ const defaultMaterial = new Solid({
 
 const obj1 = new Object3D({
   position: vec3(-0.7, 0, 0),
-  rotationSpeed: vec3(0.1, 0, 0),
+  rotationSpeed: vec3(0.1, 0.03, 0.01),
   material: defaultMaterial,
   mesh: new Cube({
     size: 1.5,
@@ -54,8 +55,8 @@ const obj1 = new Object3D({
 });
 
 const obj2 = new Object3D({
-  position: vec3(0, 0, 1.7),
-  rotationSpeed: vec3(-0.1, 0, 0),
+  position: vec3(2, 3, 1.7),
+  rotationSpeed: vec3(0, 0.01, 0.1),
   material: defaultMaterial,
   mesh: new Cube({
     size: 0.5,
@@ -63,7 +64,7 @@ const obj2 = new Object3D({
 });
 
 const sphere = new Object3D({
-  position: vec3(-0.7, 1.8, 0),
+  position: vec3(-0.7, 2.5, 0),
   rotationSpeed: vec3(0.01, 0.01, 0),
   material: new Solid({
     color: rgb(30, 117, 218),
@@ -117,7 +118,7 @@ engine.init().then(() => {
 
   // Criar um cubo texturizado sem iluminação
   const texturedCube = new Object3D({
-    position: vec3(-1.7, 0, 1.0),
+    position: vec3(-3, 3, 1.0),
     // rotationSpeed: vec3(0, 0.1, 0),
     mesh: new Cube({
       size: 1.0,
@@ -156,6 +157,22 @@ engine.init().then(() => {
   engine.addObject(floor);
   engine.addObject(texturedCube);
   engine.addObject(textureLightCube);
+
+  engine.addObject(
+    new Object3D({
+      position: vec3(0, -2, -6),
+      rotation: vec3(90, 0, 0),
+      scale: vec3(3, 1, 3),
+      material: new Solid({
+        color: rgb(185, 185, 185),
+      }),
+      mesh: new Plain({
+        width: 10,
+        height: 10,
+        color: vec4(0.5, 0.5, 0.5, 1),
+      }),
+    })
+  );
 
   engine.camera.position = vec3(-5, 3, 3);
   lookAtPoint(engine.camera, obj1);
@@ -236,16 +253,16 @@ function handleMovement(dt) {
     camera.moveDown(CAMERA_SPEED * dt);
   }
   if (isKeyPressed("ArrowUp")) {
-    vAngle += 0.01;
+    vAngle += CAMERA_ROTATION_SPEED;
   }
   if (isKeyPressed("ArrowDown")) {
-    vAngle -= 0.01;
+    vAngle -= CAMERA_ROTATION_SPEED;
   }
   if (isKeyPressed("ArrowLeft")) {
-    hAngle -= 0.01;
+    hAngle -= CAMERA_ROTATION_SPEED;
   }
   if (isKeyPressed("ArrowRight")) {
-    hAngle += 0.01;
+    hAngle += CAMERA_ROTATION_SPEED;
   }
   camera.lookTo(hAngle, vAngle);
 
