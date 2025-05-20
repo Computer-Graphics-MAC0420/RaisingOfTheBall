@@ -203,7 +203,7 @@ class Engine {
           0
         );
       } else {
-        this.gl.drawArrays(this.gl.TRIANGLES, 0, obj.mesh.vertices.length / 3);
+        this.gl.drawArrays(this.gl.TRIANGLES, 0, obj.mesh.vertices.length);
       }
     }
   }

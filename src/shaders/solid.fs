@@ -46,6 +46,10 @@ float calculateShadow(vec4 positionLightSpace) {
   // Obtém a profundidade mais próxima armazenada no shadow map
   float closestDepth = texture(uShadowMap, projCoords.xy).r;
 
+  if(projCoords.x > 1.0f || projCoords.x < 0.0f || projCoords.y > 1.0f || projCoords.y < 0.0f) {
+    return 1.0f;
+  }
+
   // O fragmento está na sombra se a sua profundidade for maior que a do shadow map
   float shadow = currentDepth - bias > closestDepth ? 0.0f : 1.0f;
 

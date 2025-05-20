@@ -14,7 +14,7 @@ class Light extends Object3D {
   constructor({
     color = vec4(1, 1, 1, 1),
     showGizmo = false,
-    shadowFov = 90,
+    shadowFov = 120,
     shadowNear = 0.5,
     shadowFar = 100.0,
   } = {}) {
