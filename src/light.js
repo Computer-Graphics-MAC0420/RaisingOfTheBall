@@ -52,13 +52,12 @@ class Light extends Object3D {
     // Posição da luz como a origem da visualização
     const eye = this.position;
 
-    // Definir um ponto "olhando para baixo" para onde a luz aponta
-    // Estamos assumindo que a luz aponta na direção negativa do eixo Y
-    // Você pode ajustar isso conforme necessário para a sua cena
-    const at = subtract(eye, vec3(0, 1, 0));
+    // Direcionando para o centro da cena (origem)
+    // Isso faz com que a luz sempre aponte para o centro da cena onde estão os objetos
+    const at = vec3(0, 0, 0);
 
-    // Vetor "para cima" na cena
-    const up = vec3(0, 0, 1);
+    // Vetor "para cima" na cena (eixo Y é para cima em coordenadas do mundo)
+    const up = vec3(0, 1, 0);
 
     // Criar a matriz de visualização da luz
     return lookAt(eye, at, up);

@@ -273,6 +273,8 @@ class Engine {
     this.resize(window.innerWidth, window.innerHeight);
     gl.clearColor(...this.#background);
     gl.enable(gl.DEPTH_TEST);
+    gl.enable(gl.CULL_FACE);
+    gl.frontFace(gl.CW);
 
     // Inicializando o framebuffer para shadow mapping
     this._initShadowFramebuffer();
