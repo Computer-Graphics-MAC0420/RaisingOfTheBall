@@ -11,7 +11,7 @@ import { Solid } from "./materials";
 import Mesh from "./mesh";
 import { fromObjectFile } from "./utils";
 
-import duckObj from "./assets/rubber-duck.obj?raw";
+import duckObj from "./assets/objects/rubber_duck/rubber-duck.obj?raw";
 // import skullObj from "./assets/12140_Skull_v3_L2.obj?raw";
 
 const engine = new Engine();
