@@ -12,11 +12,11 @@ import Mesh from "./mesh";
 import { fromObjectFile } from "./utils";
 
 import duckObj from "./assets/rubber-duck.obj?raw";
-import skullObj from "./assets/12140_Skull_v3_L2.obj?raw";
+// import skullObj from "./assets/12140_Skull_v3_L2.obj?raw";
 
 const engine = new Engine();
 const CAMERA_SPEED = 0.005;
-const CAMERA_ROTATION_SPEED = 0.02; // Velocidade de rotação da câmera
+const CAMERA_ROTATION_SPEED = 0.04; // Velocidade de rotação da câmera
 
 const LIGHT_SPEED = 0.005; // Velocidade de movimento da luz
 const lightPos = vec3(0, 3, 5);
@@ -96,7 +96,7 @@ const floor = new Object3D({
 
 const duckMesh = new Mesh(fromObjectFile(duckObj));
 const duck = new Object3D({
-  position: vec3(1, 0, 0),
+  position: vec3(1, 0, +6),
   rotation: vec3(-90, 0, 0),
   scale: vec3(0.2, 0.2, 0.2),
   rotationSpeed: vec3(0, 0.01, 0),
@@ -106,17 +106,17 @@ const duck = new Object3D({
   mesh: duckMesh,
 });
 
-const skullMesh = new Mesh(fromObjectFile(skullObj));
-const skull = new Object3D({
-  position: vec3(-3, 0, 0),
-  rotation: vec3(-90, 0, 0),
-  scale: vec3(0.02, 0.02, 0.02),
-  rotationSpeed: vec3(0, 0.01, 0),
-  material: new Solid({
-    color: rgb(229, 235, 183),
-  }),
-  mesh: skullMesh,
-});
+// const skullMesh = new Mesh(fromObjectFile(skullObj));
+// const skull = new Object3D({
+//   position: vec3(-3, 0, 0),
+//   rotation: vec3(-90, 0, 0),
+//   scale: vec3(0.02, 0.02, 0.02),
+//   rotationSpeed: vec3(0, 0.01, 0),
+//   material: new Solid({
+//     color: rgb(229, 235, 183),
+//   }),
+//   mesh: skullMesh,
+// });
 
 engine.init().then(() => {
   console.log("Engine initialized");
@@ -182,12 +182,28 @@ engine.init().then(() => {
   engine.addObject(texturedCube);
   engine.addObject(textureLightCube);
   engine.addObject(duck);
-  engine.addObject(skull);
+  // engine.addObject(skull);
 
   engine.addObject(
     new Object3D({
-      position: vec3(0, -2, -6),
+      position: vec3(0, -2, -8),
       rotation: vec3(90, 0, 0),
+      scale: vec3(3, 1, 3),
+      material: new Solid({
+        color: rgb(185, 185, 185),
+      }),
+      mesh: new Plain({
+        width: 10,
+        height: 10,
+        color: vec4(0.5, 0.5, 0.5, 1),
+      }),
+    })
+  );
+
+  engine.addObject(
+    new Object3D({
+      position: vec3(0, -2, +10),
+      rotation: vec3(-90, 0, 0),
       scale: vec3(3, 1, 3),
       material: new Solid({
         color: rgb(185, 185, 185),

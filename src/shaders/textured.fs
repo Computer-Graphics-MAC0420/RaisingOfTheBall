@@ -2,34 +2,26 @@
 
 precision highp float;
 
-// Entradas do vertex shader
-in vec3 vView;   // Vetor de visão (do vértice para a câmera)
-in vec3 vNormal; // Normal interpolada no espaço de visão
-in vec3 vLight;  // Vetor da luz (do vértice para a fonte de luz)
-in vec4 vPositionLightSpace; // Posição do fragmento no espaço da luz
+in vec3 vView;
+in vec3 vNormal;
+in vec3 vLight;
+in vec4 vPositionLightSpace;
 
-// Saída para o framebuffer
 out vec4 outColor;
 
-// Uniforms para iluminação e material
-uniform vec4 uLightColor;   // Cor da luz
+uniform vec4 uLightColor;
 
-// Uniforms para parâmetros de iluminação
-uniform float uShininess;     // Expoente especular (controla tamanho do brilho)
-uniform float uAmbientFactor; // Fator de luz ambiente
-uniform float uDiffuseFactor; // Fator de reflexão difusa
-uniform float uSpecularFactor; // Fator de reflexão especular
+uniform float uShininess;
+uniform float uAmbientFactor;
+uniform float uDiffuseFactor;
+uniform float uSpecularFactor;
 
-// Texture parameters
-in vec2 vTexCoord; // Texture coordinates from vertex shader
-uniform sampler2D uTexture; // Texture sampler
+in vec2 vTexCoord;
+uniform sampler2D uTexture;
 
-// Shadow mapping parameters
-uniform sampler2D uShadowMap; // Shadow map texture
+uniform sampler2D uShadowMap;
 
-// Função para calcular a visibilidade de sombra (0.0 = sombra, 1.0 = luz)
 float calculateShadow(vec4 positionLightSpace) {
-  // Obtém as coordenadas normalizadas da posição no espaço da luz
   vec3 projCoords = positionLightSpace.xyz / positionLightSpace.w;
 
   // Converte de [-1,1] para [0,1]
@@ -69,31 +61,25 @@ void main() {
   // Calcular vetor meio caminho entre luz e visão (para reflexão especular)
   vec3 halfV = normalize(lightV + viewV);
 
-  // Componente de luz ambiente
-  // Multiplica a cor do material pela cor da luz
+  // Ambient light
   vec3 ambient = texColor.rgb * lightColor;
 
-  // Componente de luz difusa
-  // Calcula o fator de difusão com produto escalar entre normal e luz
+  // Diffuse light
   float diffuseStrength = max(0.0f, dot(normalV, lightV));
   vec3 diffuse = diffuseStrength * texColor.rgb * lightColor;
 
-  // Componente de luz especular
-  // Usa o modelo Blinn-Phong com o vetor meio caminho
+  // Specular light
   float specularStrength = pow(max(0.0f, dot(normalV, halfV)), uShininess);
   vec3 specular = vec3(0.0f, 0.0f, 0.0f);
 
-  // Aplica reflexão especular apenas em superfícies viradas para a luz
   if(diffuseStrength > 0.0f) {
     specular = specularStrength * lightColor;
   }
 
-  // Calcula o fator de sombra (0.0 = totalmente na sombra, 1.0 = totalmente iluminado)
+  // Shadow
   float shadow = calculateShadow(vPositionLightSpace);
 
-  // Cor final: combina as três componentes de iluminação
-  // aplicando os fatores de intensidade para cada uma e o fator de sombra
-  // Nota: A luz ambiente não é afetada pelas sombras
+  // Final color
   vec3 result = ambient * uAmbientFactor +
     shadow * (diffuse * uDiffuseFactor + specular * uSpecularFactor);
 

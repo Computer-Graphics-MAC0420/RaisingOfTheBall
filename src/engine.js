@@ -78,6 +78,8 @@ class Engine {
    */
   onUpdate;
 
+  #lastTimeFPS;
+
   get camera() {
     return this.#camera;
   }
@@ -92,6 +94,7 @@ class Engine {
 
   start() {
     this.#lastTime = Date.now();
+    this.#lastTimeFPS = Date.now();
     this.mainLoop();
   }
 
@@ -103,10 +106,14 @@ class Engine {
     this.update(dt);
     this.render();
 
-    window.requestAnimationFrame(this.mainLoop.bind(this));
+    window.requestAnimationFrame(() => this.mainLoop());
   }
 
   update(dt) {
+    if (this.fpsDisplay) {
+      this.fpsDisplay.innerText = `FPS: ${this.fps}`;
+    }
+
     if (this.onUpdate) {
       this.onUpdate(dt);
     }
@@ -117,6 +124,11 @@ class Engine {
   }
 
   render() {
+    const now = Date.now();
+    const dt = (now - this.#lastTimeFPS) / 1000; // seconds
+    this.#lastTimeFPS = now;
+    this.fps = Math.round(1 / dt);
+
     // Passo 1: Renderiza a cena do ponto de vista da luz (cria o shadow map)
     this._renderShadowMap();
 
@@ -239,6 +251,7 @@ class Engine {
 
   _initComponents(canvasID) {
     this.#canvas = document.getElementById(canvasID);
+    this.fpsDisplay = document.getElementById("fps");
 
     if (!this.#canvas) {
       throw new Error("Canvas not found");
