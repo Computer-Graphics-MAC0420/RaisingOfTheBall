@@ -310,6 +310,8 @@ class Shader {
    * @param {Array} colors - Array de cores
    */
   bindColors(colors) {
+    if (!colors || colors.length === 0) return;
+
     this.#gl.bindBuffer(this.#gl.ARRAY_BUFFER, this.#buffers.colors);
     this.#gl.bufferData(
       this.#gl.ARRAY_BUFFER,
