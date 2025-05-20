@@ -8,10 +8,13 @@ import Texture from "./texture";
 import Material from "./material";
 import { rgb } from "./colors";
 import { Solid } from "./materials";
-import duckObj from "./assets/rubber-duck.obj?raw";
 import Mesh from "./mesh";
 import { fromObjectFile } from "./utils";
 
+import duckObj from "./assets/rubber-duck.obj?raw";
+import skullObj from "./assets/12140_Skull_v3_L2.obj?raw";
+
+const engine = new Engine();
 const CAMERA_SPEED = 0.005;
 const CAMERA_ROTATION_SPEED = 0.02; // Velocidade de rotação da câmera
 
@@ -103,7 +106,17 @@ const duck = new Object3D({
   mesh: duckMesh,
 });
 
-const engine = new Engine();
+const skullMesh = new Mesh(fromObjectFile(skullObj));
+const skull = new Object3D({
+  position: vec3(-3, 0, 0),
+  rotation: vec3(-90, 0, 0),
+  scale: vec3(0.02, 0.02, 0.02),
+  rotationSpeed: vec3(0, 0.01, 0),
+  material: new Solid({
+    color: rgb(229, 235, 183),
+  }),
+  mesh: skullMesh,
+});
 
 engine.init().then(() => {
   console.log("Engine initialized");
@@ -169,6 +182,7 @@ engine.init().then(() => {
   engine.addObject(texturedCube);
   engine.addObject(textureLightCube);
   engine.addObject(duck);
+  engine.addObject(skull);
 
   engine.addObject(
     new Object3D({
