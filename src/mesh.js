@@ -11,9 +11,6 @@ class Mesh {
   #texCoords;
   #useIndices = true;
 
-  /** @type {Transform} Transformação local do mesh */
-  #transform;
-
   /**
    * Cria uma nova instância de Mesh
    * @param {Object} options - Opções de configuração
@@ -40,7 +37,6 @@ class Mesh {
     this.#normals = normals || this.calculateNormals();
     this.#texCoords = texCoords || [];
     this.#useIndices = useIndices;
-    this.#transform = new Transform(transform);
   }
 
   /**
@@ -93,77 +89,6 @@ class Mesh {
   }
 
   /**
-   * @returns {Transform} Objeto de transformação
-   */
-  get transform() {
-    return this.#transform;
-  }
-
-  /**
-   * Define a transformação do mesh
-   * @param {Transform} transform - Nova transformação
-   */
-  set transform(transform) {
-    if (transform instanceof Transform) {
-      this.#transform = transform;
-    }
-  }
-
-  /**
-   * Define a posição local do mesh
-   * @param {vec3|Object} position - Nova posição
-   */
-  setPosition(position) {
-    this.#transform.setPosition(position);
-  }
-
-  /**
-   * @returns {vec3} Posição atual do mesh
-   */
-  getPosition() {
-    return this.#transform.position;
-  }
-
-  /**
-   * Define a escala local do mesh
-   * @param {vec3|Object} scale - Nova escala
-   */
-  setScale(scale) {
-    this.#transform.setScale(scale);
-  }
-
-  /**
-   * @returns {vec3} Escala atual do mesh
-   */
-  getScale() {
-    return this.#transform.scale;
-  }
-
-  /**
-   * Define a rotação local do mesh
-   * @param {vec3|Object} rotation - Nova rotação
-   */
-  setRotation(rotation) {
-    this.#transform.setRotation(rotation);
-  }
-
-  /**
-   * @returns {vec3} Rotação atual do mesh
-   */
-  getRotation() {
-    return this.#transform.rotation;
-  }
-
-  // Para compatibilidade com código existente
-  setTranslation(t) {
-    this.setPosition(t);
-  }
-
-  getTranslation() {
-    return this.getPosition();
-  }
-
-  /**
    * Método para calcular normais por vértice se não forem fornecidas
    * @returns {Array} Array de normais calculadas
    */
@@ -197,14 +122,6 @@ class Mesh {
 
     // Normalizar todas as normais
     return normals.map((n) => normalize(n));
-  }
-
-  /**
-   * Calcula a matriz de modelo para este mesh
-   * @returns {mat4} Matriz de modelo para transformação
-   */
-  getModelMatrix() {
-    return this.#transform.getModelMatrix();
   }
 }
 

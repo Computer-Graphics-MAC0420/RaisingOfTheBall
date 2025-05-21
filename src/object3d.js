@@ -234,14 +234,7 @@ class Object3D {
    * @returns {mat4} Matriz de modelo para transformação
    */
   getModelMatrix() {
-    const baseModel = this.#transform.getModelMatrix();
-
-    // Se não tiver mesh, retorna apenas a transformação base
-    if (!this.mesh) {
-      return baseModel;
-    }
-
-    return mult(baseModel, this.mesh.getModelMatrix());
+    return this.#transform.getModelMatrix();
   }
 }
 
