@@ -195,6 +195,7 @@ class Windmill {
     towerWidthFactor = 0.3,
     towerDepthFactor = 0.3,
     hubSizeFactor = 0.15,
+    bladeRotationSpeed = 10,
     bladeLengthFactor = 1.5,
     bladeWidthFactor = 0.2,
     bladeThicknessFactor = 0.05,
@@ -234,7 +235,7 @@ class Windmill {
 
     // Blade rotation for animation
     this.bladeRotation = 0;
-    this.bladeRotationSpeed = 1.0; // degrees per update
+    this.bladeRotationSpeed = bladeRotationSpeed; // degrees per update
   }
 
   // Position methods
@@ -317,6 +318,137 @@ class Windmill {
   getBlades() {
     return this.blades;
   }
+
+  // Mathematically correct sphere vs OOBB collision detection
+  isColliding(sphereObj) {
+    // Get sphere properties
+    const spherePos = sphereObj.position || vec3(0, 0, 0);
+    const sphereRadius = sphereObj.mesh?.size || 0.5;
+    
+    // Check collision with each individual blade OOBB
+    return this._checkBladeOOBBCollisions(spherePos, sphereRadius);
+  }
+  
+  // Check collision between sphere and each blade's OOBB
+  _checkBladeOOBBCollisions(spherePos, sphereRadius) {
+    const bladesPos = this.blades.getTranslation ? this.blades.getTranslation() : vec3(0, 0, 0);
+    const currentRotation = this.bladeRotation * (Math.PI / 180); // Convert to radians
+    
+    // Blade dimensions (from WindmillBladesMesh constructor)
+    const size = 1.5; // Windmill size
+    const bladeLength = size * 1.5;
+    const bladeWidth = size * 0.2;
+    const bladeThickness = size * 0.05;
+    const numBlades = 4;
+    
+    // Each blade is positioned at bladeLength/2 offset from hub center
+    const bladeRotationAxisOffset = bladeLength / 2;
+    
+    // Check collision with each blade
+    for (let i = 0; i < numBlades; i++) {
+      const bladeAngle = (i / numBlades) * 2 * Math.PI + currentRotation;
+      
+      // Create OOBB for this blade
+      const bladeOOBB = this._createBladeOOBB(
+        bladesPos, 
+        bladeAngle, 
+        bladeLength, 
+        bladeWidth, 
+        bladeThickness, 
+        bladeRotationAxisOffset
+      );
+      
+      // Test sphere vs this blade's OOBB
+      if (this._sphereOOBBIntersection(spherePos, sphereRadius, bladeOOBB)) {
+        console.log(`COLLISION! Blade ${i} at angle ${(bladeAngle * 180 / Math.PI).toFixed(1)}°`);
+        console.log(`Sphere: [${spherePos[0].toFixed(2)}, ${spherePos[1].toFixed(2)}, ${spherePos[2].toFixed(2)}], radius: ${sphereRadius}`);
+        console.log(`Blade center: [${bladeOOBB.center[0].toFixed(2)}, ${bladeOOBB.center[1].toFixed(2)}, ${bladeOOBB.center[2].toFixed(2)}]`);
+        return true;
+      }
+    }
+    
+    return false;
+  }
+  
+  // Create an OOBB for a single blade
+  _createBladeOOBB(hubPos, bladeAngle, bladeLength, bladeWidth, bladeThickness, rotationAxisOffset) {
+    // Blade half-extents in local space
+    const halfExtents = vec3(bladeWidth / 2, bladeLength / 2, bladeThickness / 2);
+    
+    // Calculate blade center position in world space
+    // The blade extends from the hub, offset by rotationAxisOffset along its local Y axis
+    const bladeLocalCenter = vec3(0, rotationAxisOffset, 0);
+    
+    // Rotate the local center offset to get world position
+    const cosAngle = Math.cos(bladeAngle);
+    const sinAngle = Math.sin(bladeAngle);
+    
+    const bladeCenterX = hubPos[0] + bladeLocalCenter[0] * cosAngle - bladeLocalCenter[1] * sinAngle;
+    const bladeCenterY = hubPos[1] + bladeLocalCenter[0] * sinAngle + bladeLocalCenter[1] * cosAngle;
+    const bladeCenterZ = hubPos[2] + bladeLocalCenter[2];
+    
+    const bladeCenter = vec3(bladeCenterX, bladeCenterY, bladeCenterZ);
+    
+    // Create rotation matrix for this blade (rotation around Z-axis)
+    const rotationMatrix = [
+      [cosAngle, -sinAngle, 0],
+      [sinAngle, cosAngle, 0],
+      [0, 0, 1]
+    ];
+    
+    // The OOBB axes are the columns of the rotation matrix
+    const axes = [
+      vec3(rotationMatrix[0][0], rotationMatrix[1][0], rotationMatrix[2][0]), // X axis
+      vec3(rotationMatrix[0][1], rotationMatrix[1][1], rotationMatrix[2][1]), // Y axis  
+      vec3(rotationMatrix[0][2], rotationMatrix[1][2], rotationMatrix[2][2])  // Z axis
+    ];
+    
+    return {
+      center: bladeCenter,
+      halfExtents: halfExtents,
+      axes: axes
+    };
+  }
+  
+  // Mathematically correct sphere vs OOBB intersection test
+  _sphereOOBBIntersection(sphereCenter, sphereRadius, oobb) {
+    // Transform sphere center to OOBB's local coordinate system
+    const relativePos = this._subtract(sphereCenter, oobb.center);
+    
+    // Project relative position onto each OOBB axis
+    const localPos = vec3(
+      this._dot(relativePos, oobb.axes[0]),
+      this._dot(relativePos, oobb.axes[1]), 
+      this._dot(relativePos, oobb.axes[2])
+    );
+    
+    // Find closest point on OOBB to sphere center (in local space)
+    const closestPoint = vec3(
+      this._clamp(localPos[0], -oobb.halfExtents[0], oobb.halfExtents[0]),
+      this._clamp(localPos[1], -oobb.halfExtents[1], oobb.halfExtents[1]),
+      this._clamp(localPos[2], -oobb.halfExtents[2], oobb.halfExtents[2])
+    );
+    
+    // Calculate distance from sphere center to closest point (in local space)
+    const distanceVec = this._subtract(localPos, closestPoint);
+    const distanceSquared = this._dot(distanceVec, distanceVec);
+    
+    // Collision occurs if distance is less than sphere radius
+    return distanceSquared < (sphereRadius * sphereRadius);
+  }
+  
+  // Vector math utility functions
+  _subtract(a, b) {
+    return vec3(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+  }
+  
+  _dot(a, b) {
+    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  }
+  
+  _clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+  }
 }
 
-export { WindmillBaseMesh, WindmillBladesMesh, Windmill };
+export default Windmill;

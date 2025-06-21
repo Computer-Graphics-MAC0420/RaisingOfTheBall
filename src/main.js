@@ -2,7 +2,8 @@ import Engine from "./engine.js";
 import Object3D from "./object3d.js";
 // import "./style.css"; // Removed as it's linked in HTML
 
-import { Cube, Plain, Sphere, Windmill } from "./meshes/index.js";
+import { Cube, Plain, Sphere } from "./meshes/index.js";
+import Windmill from "./meshes/windmill.js";
 import { isKeyPressed } from "./keyboard.js";
 
 const CAMERA_SPEED = 0.001;
@@ -59,7 +60,7 @@ function setupMouseControls(canvas) {
 const windmill = new Windmill({
   size: 1.5,
   position: vec3(-0.7, 0, 0),
-  bladeRotationSpeed: 3.0, // degrees per second
+  bladeRotationSpeed: 0.1, // degrees per second (increased from 10.0)
 });
 
 const obj2 = new Object3D({
@@ -78,6 +79,17 @@ const sphereObj = new Object3D({
   mesh: new Sphere({
     density: 2,
     size: 0.3 
+  }),
+});
+
+// Sphere near windmill
+const windmillSphere = new Object3D({
+  position: vec3(-1.5, 0.5, 0), // Close to windmill (-0.7, 0, 0)
+  rotationSpeed: vec3(0, 0.02, 0), // Slow rotation around Y-axis
+  shader: "light",
+  mesh: new Sphere({
+    density: 3,
+    size: 0.4,
   }),
 });
 
@@ -135,6 +147,7 @@ engine.init().then(() => {
 
   engine.addObject(obj2);
   engine.addObject(sphereObj); 
+  engine.addObject(windmillSphere); // Add the new sphere near windmill
   engine.addObject(lightGismo);
   engine.addObject(floor);
 
@@ -146,12 +159,18 @@ engine.init().then(() => {
 
   engine.onUpdate = (dt) => {
     // Animate windmill (encapsulated behavior)
-    windmill.animate(dt * 0.001); // Convert milliseconds to seconds
+    windmill.animate(dt * 0.1); // Adjusted conversion factor
+    
+    // Test collision detection
+    if (windmill.isColliding(windmillSphere)) {
+      console.log("Collision detected between windmill and sphere!");
+      // You could change the sphere color or position here
+    }
+    
     handleMovement(dt);
   };
 
   engine.start();
-  setupMouseControls(engine.canvas); // Setup mouse controls
 });
 
 function handleMovement(dt) {

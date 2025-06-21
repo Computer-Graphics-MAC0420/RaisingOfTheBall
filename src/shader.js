@@ -32,6 +32,7 @@ class Shader {
     const typeStr =
       type === this.#gl.VERTEX_SHADER ? "VERTEX_SHADER" : "FRAGMENT_SHADER";
     console.log(`Compilando ${typeStr}...`);
+    console.log(`Shader source:`, source.substring(0, 200) + "...");
 
     const shader = this.#gl.createShader(type);
     this.#gl.shaderSource(shader, source);
@@ -39,13 +40,12 @@ class Shader {
 
     if (!this.#gl.getShaderParameter(shader, this.#gl.COMPILE_STATUS)) {
       const error = this.#gl.getShaderInfoLog(shader);
-      console.error(`Erro ao compilar ${typeStr}: ${error}`);
-      console.error("Código fonte do shader:", source);
+      console.error(`Erro ao compilar ${typeStr}:`, error);
       this.#gl.deleteShader(shader);
-      return null;
+      throw new Error(`Shader compilation failed: ${error}`);
     }
 
-    console.log(`${typeStr} compilado com sucesso!`);
+    console.log(`${typeStr} compilado com sucesso`);
     return shader;
   }
 
@@ -172,6 +172,7 @@ class Shader {
       return;
     }
 
+    console.log(`Uniform '${name}' definido com sucesso`);
     this.#uniforms[name] = location;
   }
 
@@ -200,6 +201,10 @@ class Shader {
     const location = this.#uniforms[name];
     if (location === undefined) {
       console.warn(`Uniform '${name}' não foi definido`);
+      return;
+    }
+    if (location === null) {
+      console.warn(`Uniform '${name}' não foi encontrado no shader`);
       return;
     }
 

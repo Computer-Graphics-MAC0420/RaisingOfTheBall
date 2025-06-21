@@ -155,7 +155,7 @@ class Engine {
       );
     }
 
-    for (const shader of Object.values(this.#shaders)) {
+    for (const [name, shader] of Object.entries(this.#shaders)) {
       // Define os atributos
       shader.defineAttribute("aPosition", 3);
       shader.defineAttribute("aNormal", 3);
@@ -164,7 +164,11 @@ class Engine {
       shader.defineUniform("uView");
       shader.defineUniform("uModel");
       shader.defineUniform("uPerspective");
-      shader.defineUniform("uLightPos");
+      
+      // Only define uLightPos for shaders that actually use lighting
+      if (name === "light") {
+        shader.defineUniform("uLightPos");
+      }
     }
 
     // Define como shader ativo
@@ -261,7 +265,11 @@ class Engine {
       throw new Error("No active shader");
     }
 
-    this.#activeShader.setUniform3fv("uLightPos", this.#light.position);
+    // Only set light position for shaders that use lighting
+    if (obj.shader === "light") {
+      this.#activeShader.setUniform3fv("uLightPos", this.#light.position);
+    }
+    
     this.bindCamera();
 
     this.bindMesh(obj.mesh);
