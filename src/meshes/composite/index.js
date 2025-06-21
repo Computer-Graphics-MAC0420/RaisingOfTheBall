@@ -1,3 +1,4 @@
 import Windmill from "./Windmill.js";
+import Pendulum from "./Pendulum.js";
 
-export { Windmill };
+export { Windmill, Pendulum };

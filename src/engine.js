@@ -33,7 +33,7 @@ class Engine {
    * @private
    * @type {number[]} - Background color in RGBA format [r, g, b, a]
    */
-  #background = [0.0, 0.0, 0.0, 1.0];
+  #background = [124/255.0, 187/255.0, 243/255.0, 1.0];
 
   /**
    * @private

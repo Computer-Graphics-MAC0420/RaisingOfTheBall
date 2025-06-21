@@ -26,7 +26,7 @@ class Box extends Mesh {
 
       vertices.push(a, b, c, d);
       normals.push(normal, normal, normal, normal);
-      colors.push(vec4(color), vec4(color), vec4(color), vec4(color));
+      colors.push(color, color, color, color);
       indices.push(index, index + 1, index + 2, index + 2, index + 3, index);
     };
 

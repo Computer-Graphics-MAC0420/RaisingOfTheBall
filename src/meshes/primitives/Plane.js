@@ -16,7 +16,7 @@ class Plane extends Mesh {
       vec3(0, 1, 0),
     ];
 
-    const colors = [vec4(color), vec4(color), vec4(color), vec4(color)];
+    const colors = [color, color, color, color];
 
     const indices = [0, 1, 2, 0, 2, 3];
 

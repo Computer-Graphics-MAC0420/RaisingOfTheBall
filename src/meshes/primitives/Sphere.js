@@ -82,7 +82,7 @@ class Sphere extends Mesh {
 
     const colors = Array(vertices.length)
       .fill(0)
-      .map(() => vec4(color));
+      .map(() => color);
 
     super({ vertices, colors, normals, useIndices: false });
     

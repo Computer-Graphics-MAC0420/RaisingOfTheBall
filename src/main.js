@@ -2,12 +2,12 @@ import Engine from "./engine.js";
 import Object3D from "./object3d.js";
 // import "./style.css"; // Removed as it's linked in HTML
 
-import { Box, Plane, Sphere, Windmill } from "./meshes/index.js";
+import { Box, Plane, Sphere, Windmill, Pendulum } from "./meshes/index.js";
 import { isKeyPressed } from "./keyboard.js";
 
 const CAMERA_SPEED = 0.001;
 const MOUSE_SENSITIVITY = 0.002; // Mouse sensitivity for camera rotation
-const lightPos = vec3(-4, 0, 2);
+const lightPos = vec3(5, 10, 5);
 
 let hAngle = 0;
 let vAngle = 0;
@@ -68,6 +68,24 @@ const windmillObject = new Object3D({
   mesh: windmill,
 });
 
+// Pendulum
+const pendulum = new Pendulum({
+  armLength: 2.5,
+  armWidth: 0.08,
+  sphereRadius: 0.3,
+  armColor: vec4(0.6, 0.4, 0.2, 1),    // Brown wood
+  sphereColor: vec4(0.9, 0.2, 0.2, 1), // Red sphere
+  maxAngle: 35,                         // Swing 35 degrees each way
+  period: 1000                          // 4 second full swing cycle
+});
+
+const pendulumObject = new Object3D({
+  position: vec3(2, 2, 0),              // Positioned to the right, hanging from above
+  rotationSpeed: vec3(0, 0, 0),         // No Object3D rotation - pendulum handles its own motion
+  shader: "light",
+  mesh: pendulum,
+});
+
 const obj2 = new Object3D({
   position: vec3(0.7, 0, 0),
   rotationSpeed: vec3(-0.1, 0, 0),
@@ -114,7 +132,7 @@ const floor = new Object3D({
   mesh: new Plane({
     width: 10,
     height: 10,
-    color: vec4(0.5, 0.5, 0.5, 1),
+    color: vec4(40/255.0, 197/255.0, 87/255.0, 1),
   }),
 });
 
@@ -140,6 +158,9 @@ engine.init().then(() => {
   // Add windmill object to engine
   engine.addObject(windmillObject);
 
+  // Add pendulum object to engine
+  engine.addObject(pendulumObject);
+
   engine.addObject(obj2);
   engine.addObject(sphereObj); 
   engine.addObject(windmillSphere); // Add the new sphere near windmill
@@ -154,6 +175,9 @@ engine.init().then(() => {
 
   engine.onUpdate = (dt) => {    
     handleMovement(dt);
+    
+    // Update pendulum physics
+    pendulum.update(dt);
   };
 
   engine.start();

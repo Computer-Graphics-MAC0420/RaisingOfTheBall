@@ -3,15 +3,15 @@
 precision highp float;
 
 in vec3 vView;
+in vec3 vNormal; // normal interpolated
+in vec3 vLight;
+in vec4 vColor;  // vertex color from mesh
+
 out vec4 outColor;
 
-in vec3 vNormal; // normal interpolada
-in vec3 vLight;
-
-float uAlfaEsp = 20.0f; // Aumentando o expoente especular (reduz a área do brilho)
-vec4 materialColor = 0.3f * vec4(1.0f, 0.2f, 0.0f, 1.0f); // Reduzindo a intensidade da cor do material
-vec4 uSpecularColor = vec4(0.5f, 0.5f, 0.5f, 1.0f); // Reduzindo a intensidade do brilho especular
-vec4 ambientColor = vec4(0.1f, 0.1f, 0.1f, 1.0f); // Reduzindo a luz ambiente
+float uAlfaEsp = 20.0f; // Specular exponent
+vec4 uSpecularColor = vec4(0.5f, 0.5f, 0.5f, 1.0f); // Specular highlight color
+vec4 ambientColor = vec4(0.1f, 0.1f, 0.1f, 1.0f); // Ambient light
 
 void main() {
   vec3 normalV = normalize(vNormal);
@@ -19,18 +19,21 @@ void main() {
   vec3 viewV = normalize(vView);
   vec3 halfV = normalize(lightV + viewV);
 
-  // Cálculo da difusão
-  float kd = max(0.0f, dot(normalV, lightV)); // Isso já garante que superfícies de costas para a luz não recebem luz difusa
+  // Use vertex color as material color
+  vec4 materialColor = vColor;
+
+  // Diffuse lighting calculation
+  float kd = max(0.0f, dot(normalV, lightV));
   vec4 diffuse = kd * materialColor;
 
-  // specular
+  // Specular lighting calculation
   float ks = pow(max(0.0f, dot(normalV, halfV)), uAlfaEsp);
-
-  vec4 specular = vec4(0, 0, 0, 1); // parte não iluminada
-  if(kd > 0.0f) {  // parte iluminada
+  
+  vec4 specular = vec4(0, 0, 0, 1); // unlit part
+  if(kd > 0.0f) {  // lit part
     specular = ks * uSpecularColor;
   }
 
-  // Cor final: ambiente + difusão
-  outColor = ambientColor + specular + diffuse;
+  // Final color: ambient + diffuse + specular
+  outColor = ambientColor * materialColor + diffuse + specular;
 }
