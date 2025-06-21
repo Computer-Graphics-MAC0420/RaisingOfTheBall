@@ -12,7 +12,6 @@ class Camera {
         this.eye = vec3(0, 0, 0);
         this.at = vec3(0, 0, 0);
 
-        this.previousTheta = 0;
         this.coordinateX = vec3(-1.0, 0.0, 0.0);
         this.coordinateY = vec3(0.0, -1.0, 0.0);
         this.coordinateZ = vec3(0.0, 0.0, 1.0);
@@ -36,27 +35,12 @@ class Camera {
         this.updateCoordinates();
     }
     updateCoordinates() {
-        let deltaTheta = this.thetaAngle - this.previousTheta;
-        this.previousTheta = this.thetaAngle;
-        const thetaRad = radians(this.thetaAngle);
-
-        console.log("thetaAngle: ", this.thetaAngle);
-        
         let rz = rotateZ(this.thetaAngle);
         let aux = mult(rz, vec4(-1,0,0,0));
         this.coordinateX = vec3(aux[0], aux[1], aux[2]);
         aux = mult(rz, vec4(0,-1,0,0));
         this.coordinateY = vec3(aux[0], aux[1], aux[2]);
-        console.log("COORDINATE X: ", this.coordinateX);
-        console.log("COORDINATE Y: ", this.coordinateY);
-
-        console.log(" ");
     }
-    // updateCoordinates() {
-    //     // Camera looks from eye → at (eye is already updated in getEye())
-    //     this.coordinateZ = up;
-    // }
-
     update() {
         this.eye = this.getEye();
         this.at = gBall.center;

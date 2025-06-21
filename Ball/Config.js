@@ -18,7 +18,7 @@ const CAM = {
 
 const SENSE_CAMERA = 0.1;
 const BALL_VELOCITY = 45; // Speed of the ball
-const MIN_PHI_ANGLE = 0; // Minimum vertical angle for the camera
+const MIN_PHI_ANGLE = 1; // Minimum vertical angle for the camera
 const MAX_PHI_ANGLE = 25; // Maximum vertical angle for the camera
 
 // ============================ LISTENERS ===========================
