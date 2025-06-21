@@ -2,7 +2,7 @@ import Engine from "./engine.js";
 import Object3D from "./object3d.js";
 // import "./style.css"; // Removed as it's linked in HTML
 
-import { Box, Plane, Sphere, Windmill, Pendulum } from "./meshes/index.js";
+import { Box, Plane, Sphere, Windmill, Pendulum, Seesaw } from "./meshes/index.js";
 import { isKeyPressed } from "./keyboard.js";
 
 const CAMERA_SPEED = 0.001;
@@ -86,6 +86,27 @@ const pendulumObject = new Object3D({
   mesh: pendulum,
 });
 
+// Seesaw
+const seesaw = new Seesaw({
+  plankLength: 0.4,
+  plankWidth: 3.5,
+  plankHeight: 0.12,
+  baseWidth: 0.3,
+  baseHeight: 1.0,
+  baseDepth: 0.3,
+  plankColor: vec4(0.8, 0.6, 0.4, 1),     // Light wood
+  baseColor: vec4(0.5, 0.3, 0.2, 1),      // Dark wood
+  maxTiltAngle: 20,                        // 20 degrees tilt
+  tiltPeriod: 800.0                          // 6 second cycle
+});
+
+const seesawObject = new Object3D({
+  position: vec3(1, -1, 3),                // Left side of scene
+  rotationSpeed: vec3(0, 0, 0),            // No rotation - seesaw handles its own motion
+  shader: "light",
+  mesh: seesaw,
+});
+
 const obj2 = new Object3D({
   position: vec3(0.7, 0, 0),
   rotationSpeed: vec3(-0.1, 0, 0),
@@ -161,6 +182,9 @@ engine.init().then(() => {
   // Add pendulum object to engine
   engine.addObject(pendulumObject);
 
+  // Add seesaw object to engine
+  engine.addObject(seesawObject);
+
   engine.addObject(obj2);
   engine.addObject(sphereObj); 
   engine.addObject(windmillSphere); // Add the new sphere near windmill
@@ -178,6 +202,9 @@ engine.init().then(() => {
     
     // Update pendulum physics
     pendulum.update(dt);
+    
+    // Update seesaw physics
+    seesaw.update(dt);
   };
 
   engine.start();
