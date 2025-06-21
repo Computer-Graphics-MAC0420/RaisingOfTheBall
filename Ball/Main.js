@@ -71,11 +71,7 @@ function main() {
     if (!gl) alert("Vixe! Não achei WebGL 2.0 aqui :-(");
 
     gBall = new Ball();
-    gCamera = new Camera(
-        vec3(0, 0, 500), 
-        vec3(0, 0, 0), 
-        vec3(0, 1, 0)
-    );
+    gCamera = new Camera();
 
     activateControlsListeners();
     // setupInputListeners();
@@ -125,6 +121,21 @@ function main() {
         true, 1,
     );
     gObjects.push(YSphere);
+    // Orange
+    const ZSphere = new Esfera(
+        vec3(10,10,10),
+        0,
+        {   
+            amb: vec4(1.0, 0.5, 0.0, 1.0), 
+            dif: vec4(1.0, 0.5, 0.0, 1.0), 
+            esp: 250
+        },
+        vec3(0, 0, 0),
+        vec3(0, 0, 0),
+        vec3(0.0, 0.0, -20.0),
+        true, 1,
+    );
+    gObjects.push(ZSphere);
 
 
     // Iniatilize Scene
@@ -144,7 +155,7 @@ function renderStep(deltaTime) {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     
     gBall.update(deltaTime);
-    gCamera.update(deltaTime);
+    gCamera.update();
     // Render each object
     for (let i = 0; i < gObjects.length; i++)
         gObjects[i].update(deltaTime);

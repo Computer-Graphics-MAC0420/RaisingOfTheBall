@@ -17,14 +17,27 @@ const CAM = {
 };
 
 const SENSE_CAMERA = 0.1;
-const BALL_VELOCITY = 15; // Speed of the ball
+const BALL_VELOCITY = 45; // Speed of the ball
+const MIN_PHI_ANGLE = -89; // Minimum vertical angle for the camera
+const MAX_PHI_ANGLE = 89; // Maximum vertical angle for the camera
 
 // ============================ LISTENERS ===========================
+// Animation control
+function pauseAnimation(event) {
+    if (event.key == "p" || event.key == "P") {
+        gConfig.paused = !gConfig.paused;
+        if (!gConfig.paused) {
+            gLastTime = Date.now();
+            drawAnimation();
+        }
+    }
+}
+// Pointer Lock
 function lockPointer() {
     if (!gConfig.pointerLocked) {
         gCanvas.requestPointerLock = gCanvas.requestPointerLock || gCanvas.mozRequestPointerLock;
         gCanvas.requestPointerLock();
-        gCanvas.focus(); // Ensure canvas receives keyboard events
+        gCanvas.focus();
     }
 }
 function disableLockPointer(event) {
@@ -35,53 +48,54 @@ function disableLockPointer(event) {
 function pointerLockChange() {
     gConfig.pointerLocked = document.pointerLockElement === gCanvas || document.mozPointerLockElement === gCanvas;
 }
+// Camera movement
 function onPointerMove(event) {
     if (!gConfig.pointerLocked) return;
-    gCamera.theta[1] += event.movementX * SENSE_CAMERA;
-    gCamera.theta[0] += event.movementY * SENSE_CAMERA;
-
-    gCamera.theta[0] = Math.max(-89, Math.min(89, gCamera.theta[0]));
-    // gCamera.theta[1] = Math.max(-89, Math.min(89, gCamera.theta[1]));
-    gCamera.theta[1] = gCamera.theta[1] % 360;
-    console.log(`Camera theta: ${gCamera.theta}`);
+    gCamera.rotateCamera(event.movementX, event.movementY);
     if (gConfig.paused) renderStep(0);
 }
-
-
-function pauseAnimation(event) {
-    if (event.key == "p" || event.key == "P") {
-        gConfig.paused = !gConfig.paused;
-        if (!gConfig.paused) {
-            gLastTime = Date.now();
-            drawAnimation();
-        }
-    }
-}
+// Ball movement
 function onKeyDownMove(event) {
     switch(event.key.toLowerCase()) {
-        case 'w':
-            gCamera.vTrans[0] = 1; // move forward
-            gBall.velocity.translation[0] = BALL_VELOCITY; // move ball forward
+        case 'w': {
+            // Move ball forward along camera's local Y axis (ignore Z)
+            let forward = gCamera.getForwardDirection();
+            forward = vec3(forward[0], forward[1], 0); // ignore Z
+            forward = normalize(forward);
+            gBall.velocity.translation = mult(BALL_VELOCITY, forward);
             break;
-        case 's':
-            gCamera.vTrans[0] = -1; // move backward
-            gBall.velocity.translation[0] = -BALL_VELOCITY; // move ball backward
+        }
+        case 's': {
+            // Move ball backward along camera's local Y axis (ignore Z)
+            let forward = gCamera.getForwardDirection();
+            forward = vec3(forward[0], forward[1], 0); // ignore Z
+            forward = normalize(forward);
+            gBall.velocity.translation = mult(-BALL_VELOCITY, forward);
             break;
-        case 'a':
-            gCamera.vTrans[1] = -1; // move left
-            gBall.velocity.translation[1] = -BALL_VELOCITY; // move ball left
+        }
+        case 'd': {
+            // Move ball right along camera's local X axis (ignore Z)
+            let forward = gCamera.getForwardDirection();
+            let right = vec3(forward[1], -forward[0], 0); // perpendicular in XY plane
+            right = normalize(right);
+            gBall.velocity.translation = mult(BALL_VELOCITY, right);
             break;
-        case 'd':
-            gCamera.vTrans[1] = 1; // move right
-            gBall.velocity.translation[1] = BALL_VELOCITY; // move ball right
+        }
+        case 'a': {
+            // Move ball left along camera's local X axis (ignore Z)
+            let forward = gCamera.getForwardDirection();
+            let left = vec3(-forward[1], forward[0], 0); // perpendicular in XY plane
+            left = normalize(left);
+            gBall.velocity.translation = mult(BALL_VELOCITY, left);
             break;
+        }
         case 'q':
-            gCamera.vTrans[2] = 1; // Move up
-            gBall.velocity.translation[2] = BALL_VELOCITY; // Move ball up
+            // Move ball up along world Z axis
+            gBall.velocity.translation = vec3(0, 0, BALL_VELOCITY);
             break;
         case 'e':
-            gCamera.vTrans[2] = -1; // Move down
-            gBall.velocity.translation[2] = -BALL_VELOCITY; // Move ball down
+            // Move ball down along world Z axis
+            gBall.velocity.translation = vec3(0, 0, -BALL_VELOCITY);
             break;
     }
 }
@@ -89,18 +103,11 @@ function onKeyUpMove(event) {
     switch(event.key.toLowerCase()) {
         case 'w':
         case 's':
-            gCamera.vTrans[0] = 0;
-            gBall.velocity.translation[0] = 0; // Stop ball forward/backward movement
-            break;
         case 'a':
         case 'd':
-            gCamera.vTrans[1] = 0;
-            gBall.velocity.translation[1] = 0; // Stop ball left/right movement
-            break;
         case 'q':
         case 'e':
-            gCamera.vTrans[2] = 0;
-            gBall.velocity.translation[2] = 0; // Stop ball up/down movement
+            gBall.velocity.translation = vec3(0, 0, 0);
             break;
     }
 }
