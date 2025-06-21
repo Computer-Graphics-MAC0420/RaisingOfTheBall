@@ -12,30 +12,51 @@ class Camera {
         this.eye = vec3(0, 0, 0);
         this.at = vec3(0, 0, 0);
 
-        this.coordinateX = vec3(1.0, 0.0, 0.0);
-        this.coordinateY = vec3(0.0, 1.0, 0.0);
+        this.previousTheta = 0;
+        this.coordinateX = vec3(-1.0, 0.0, 0.0);
+        this.coordinateY = vec3(0.0, -1.0, 0.0);
         this.coordinateZ = vec3(0.0, 0.0, 1.0);
 
         this.update();
     }
     getEye() {
         const center = gBall.center;
-        const thetaRad = this.thetaAngle * Math.PI / 180;
-        const phiRad = this.phiAngle * Math.PI / 180;
+        const thetaRad = radians(this.thetaAngle);
+        const phiRad = radians(this.phiAngle);
         const x = center[0] + this.radius * Math.cos(phiRad) * Math.sin(thetaRad);
         const y = center[1] + this.radius * Math.cos(phiRad) * Math.cos(thetaRad);
         const z = center[2] + this.radius * Math.sin(phiRad);
         return vec3(x, y, z);
     }
     rotateCamera(deltaX, deltaY) {
-        // Horizontal mouse movement rotates around Z (theta)
+        // TODO stop camera rotation when coliding with objects
         this.thetaAngle = (this.thetaAngle + deltaX * SENSE_CAMERA) % 360;
-        // Vertical mouse movement rotates up/down (phi)
         this.phiAngle = (this.phiAngle + deltaY * SENSE_CAMERA) % 360;
-        // Clamp phi to avoid flipping
         this.phiAngle = Math.max(MIN_PHI_ANGLE, Math.min(MAX_PHI_ANGLE, this.phiAngle));
-        console.log(`Camera angles - Theta: ${this.thetaAngle}, Phi: ${this.phiAngle}`);
+        this.updateCoordinates();
     }
+    updateCoordinates() {
+        let deltaTheta = this.thetaAngle - this.previousTheta;
+        this.previousTheta = this.thetaAngle;
+        const thetaRad = radians(this.thetaAngle);
+
+        console.log("thetaAngle: ", this.thetaAngle);
+        
+        let rz = rotateZ(this.thetaAngle);
+        let aux = mult(rz, vec4(-1,0,0,0));
+        this.coordinateX = vec3(aux[0], aux[1], aux[2]);
+        aux = mult(rz, vec4(0,-1,0,0));
+        this.coordinateY = vec3(aux[0], aux[1], aux[2]);
+        console.log("COORDINATE X: ", this.coordinateX);
+        console.log("COORDINATE Y: ", this.coordinateY);
+
+        console.log(" ");
+    }
+    // updateCoordinates() {
+    //     // Camera looks from eye → at (eye is already updated in getEye())
+    //     this.coordinateZ = up;
+    // }
+
     update() {
         this.eye = this.getEye();
         this.at = gBall.center;

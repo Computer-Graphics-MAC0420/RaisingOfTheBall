@@ -122,9 +122,40 @@ class Ball {
     }
 
     // ========================= BALL UPDATES ========================
+    // updatePosition(delta) {
+    //     let cameraToWorld = vec3(
+    //         this.velocity.translation[0] * gCamera.coordinateX[0] + this.velocity.translation[1] * gCamera.coordinateY[0] + this.velocity.translation[2] * gCamera.coordinateZ[0],
+    //         this.velocity.translation[0] * gCamera.coordinateX[1] + this.velocity.translation[1] * gCamera.coordinateY[1] + this.velocity.translation[2] * gCamera.coordinateZ[1],
+    //         this.velocity.translation[0] * gCamera.coordinateX[2] + this.velocity.translation[1] * gCamera.coordinateY[2] + this.velocity.translation[2] * gCamera.coordinateZ[2]
+    //     );
+    //     console.log("center: ", this.center);
+    //     this.center = add(this.center, mult(delta, cameraToWorld));
+        
+    //     // TODO: implement collision detection and response
+    //     let model = mat4();
+    //     model = mult(model, translate(this.center[0], this.center[1], this.center[2]));
+    //     return model;
+    // }
     updatePosition(delta) {
-        this.center = add(this.center, mult(delta, this.velocity.translation));
-        // TODO: implement collision detection and response
+        // const rightVec = gCamera.coordinateX;   // The camera's "right" on the XY plane
+        // const forwardVec = gCamera.coordinateY; // The camera's "forward" on the XY plane
+        // const upVec = gCamera.coordinateZ;      // The world's "up" vector (0,0,1) for Q/E keys
+
+        // const localVelocity = this.velocity.translation;
+
+        // const worldVelRight = mult(localVelocity[0], rightVec);
+        // const worldVelForward = mult(localVelocity[1], forwardVec);
+        // const worldVelUp = mult(localVelocity[2], upVec);
+
+        // const worldVelocity = add(add(worldVelRight, worldVelForward), worldVelUp);
+        // this.center = add(this.center, mult(delta, worldVelocity));
+
+        const T = rotateZ(-gCamera.thetaAngle);
+        const ve = mult(T, vec4(...this.velocity.translation, 0));
+        const newV = vec3(ve[0], ve[1], ve[2]);
+        this.center = add(this.center, mult(delta, newV));
+
+
         let model = mat4();
         model = mult(model, translate(this.center[0], this.center[1], this.center[2]));
         return model;
@@ -138,7 +169,6 @@ class Ball {
         return model;
     }
     update(delta) {
-        console.log(`Ball position: ${this.center}, radius: ${this.radius}`);
         let modelRot = this.updateRotation(delta);
         let modelTrans = this.updatePosition(delta);
         let modelScale = scale(this.radius, this.radius, this.radius);
