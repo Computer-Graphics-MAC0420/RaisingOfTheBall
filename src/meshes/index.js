@@ -1,5 +1,5 @@
-import Cube from "./cube.js";
-import Sphere from "./sphere.js";
-import Plain from "./plain.js";
+// Primitives (basic geometric shapes)
+export { Box, Sphere, Plane } from "./primitives/index.js";
 
-export { Cube, Sphere, Plain };
+// Composite meshes (complex objects made from primitives)
+export { Windmill } from "./composite/index.js";

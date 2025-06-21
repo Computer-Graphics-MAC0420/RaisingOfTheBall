@@ -2,8 +2,7 @@ import Engine from "./engine.js";
 import Object3D from "./object3d.js";
 // import "./style.css"; // Removed as it's linked in HTML
 
-import { Cube, Plain, Sphere } from "./meshes/index.js";
-import Windmill from "./meshes/windmill.js";
+import { Box, Plane, Sphere, Windmill } from "./meshes/index.js";
 import { isKeyPressed } from "./keyboard.js";
 
 const CAMERA_SPEED = 0.001;
@@ -56,18 +55,24 @@ function setupMouseControls(canvas) {
   });
 }
 
-// Windmill (complete object with base and animated blades)
+// Windmill (now extends Mesh directly)
 const windmill = new Windmill({
-  size: 1.5,
+  size: 1
+});
+
+// Create Object3D to hold the windmill mesh
+const windmillObject = new Object3D({
   position: vec3(-0.7, 0, 0),
-  bladeRotationSpeed: 0.1, // degrees per second (increased from 10.0)
+  rotationSpeed: vec3(0, 0, 0.1), // Z-axis rotation for the blades at 90 degrees/sec
+  shader: "light",
+  mesh: windmill,
 });
 
 const obj2 = new Object3D({
   position: vec3(0.7, 0, 0),
   rotationSpeed: vec3(-0.1, 0, 0),
   shader: "normal",
-  mesh: new Cube({
+  mesh: new Box({
     size: 0.5,
   }),
 });
@@ -84,7 +89,7 @@ const sphereObj = new Object3D({
 
 // Sphere near windmill
 const windmillSphere = new Object3D({
-  position: vec3(-1.5, 0.5, 0), // Close to windmill (-0.7, 0, 0)
+  position: vec3(-2.5, 0.5, 0), // Close to windmill (-0.7, 0, 0)
   rotationSpeed: vec3(0, 0.02, 0), // Slow rotation around Y-axis
   shader: "light",
   mesh: new Sphere({
@@ -106,16 +111,12 @@ const lightGismo = new Object3D({
 const floor = new Object3D({
   position: vec3(0, -1, 0), // Initial position, will be adjusted
   shader: "light",
-  mesh: new Plain({
+  mesh: new Plane({
     width: 10,
     height: 10,
     color: vec4(0.5, 0.5, 0.5, 1),
   }),
 });
-// Adjust floor position to be below the windmill
-const windmillSize = 1.5;
-const towerHeightFactor = 2.0;
-floor.position = vec3(0, windmill.getPosition()[1] - (windmillSize * towerHeightFactor / 2), 0);
 
 const engine = new Engine();
 
@@ -136,14 +137,8 @@ engine.init().then(() => {
     setupMouseControls(canvas);
   }
 
-  // Add windmill meshes to engine (polymorphic behavior)
-  windmill.getMeshes().forEach(mesh => {
-    const obj = new Object3D({
-      shader: "light",
-      mesh: mesh,
-    });
-    engine.addObject(obj);
-  });
+  // Add windmill object to engine
+  engine.addObject(windmillObject);
 
   engine.addObject(obj2);
   engine.addObject(sphereObj); 
@@ -157,16 +152,7 @@ engine.init().then(() => {
     }
   });
 
-  engine.onUpdate = (dt) => {
-    // Animate windmill (encapsulated behavior)
-    windmill.animate(dt * 0.1); // Adjusted conversion factor
-    
-    // Test collision detection
-    if (windmill.isColliding(windmillSphere)) {
-      console.log("Collision detected between windmill and sphere!");
-      // You could change the sphere color or position here
-    }
-    
+  engine.onUpdate = (dt) => {    
     handleMovement(dt);
   };
 

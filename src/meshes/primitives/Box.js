@@ -1,6 +1,6 @@
-import Mesh from "../mesh.js";
+import Mesh from "../../mesh.js";
 
-class Cube extends Mesh {
+class Box extends Mesh {
   constructor({ size = 1, color = vec4(0.8, 0.8, 0.8, 1) }) {
     const edges = [
       vec3(-0.5, -0.5, 0.5),
@@ -41,4 +41,4 @@ class Cube extends Mesh {
   }
 }
 
-export default Cube;
+export default Box;

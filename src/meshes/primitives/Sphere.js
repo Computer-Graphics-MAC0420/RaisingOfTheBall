@@ -1,4 +1,4 @@
-import Mesh from "../mesh.js";
+import Mesh from "../../mesh.js";
 
 function crieEsfera(ndivisoes = 2) {
   // começamos com os vértices de um balão
@@ -85,6 +85,14 @@ class Sphere extends Mesh {
       .map(() => vec4(color));
 
     super({ vertices, colors, normals, useIndices: false });
+    
+    // Store the radius for collision detection
+    this.radius = size;
+  }
+  
+  // Getter for radius
+  get size() {
+    return this.radius;
   }
 }
 
