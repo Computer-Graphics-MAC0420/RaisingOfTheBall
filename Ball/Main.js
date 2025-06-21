@@ -43,6 +43,7 @@ var gCanvas;
 var gObjects = [];
 var gCamera;
 var gBall;
+var gGround;
 var gLastTime;
 
 
@@ -72,6 +73,7 @@ function main() {
 
     gBall = new Ball();
     gCamera = new Camera();
+    gGround = new Ground();
 
     activateControlsListeners();
     // setupInputListeners();
@@ -91,7 +93,7 @@ function main() {
         true, 1,
     );
     gObjects.push(centerSphere);
-    // Blue
+    // Blue - X Axis
     const XSphere = new Esfera(
         vec3(10,10,10),
         0,
@@ -106,7 +108,7 @@ function main() {
         true, 1,
     );
     gObjects.push(XSphere);
-    // Green
+    // Green - Y Axis
     const YSphere = new Esfera(
         vec3(10,10,10),
         0,
@@ -121,7 +123,7 @@ function main() {
         true, 1,
     );
     gObjects.push(YSphere);
-    // Orange
+    // Orange - Z Axis
     const ZSphere = new Esfera(
         vec3(10,10,10),
         0,
@@ -154,6 +156,7 @@ function main() {
 function renderStep(deltaTime) {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     
+    gGround.update();
     gBall.update(deltaTime);
     gCamera.update();
     // Render each object
@@ -215,6 +218,7 @@ function initShaders() {
 
     // Set material properties and attributes for each object
     gBall.initShaderVAO();
+    gGround.initShaderVAO();
     for (let i = 0; i < gObjects.length; i++)
         gObjects[i].initShaderVAO();
 }

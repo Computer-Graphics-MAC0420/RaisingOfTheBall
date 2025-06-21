@@ -8,7 +8,7 @@ class Ball {
         this.normalVectors = [];
 
         // Movement properties
-        this.center = vec3(100, 0, 0);
+        this.center = vec3(0, 0, 0);
         this.theta = vec3(0, 0, 0);
         this.velocity = {
             rotation: vec3(0, 0, 0), 

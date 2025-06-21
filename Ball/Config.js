@@ -18,8 +18,8 @@ const CAM = {
 
 const SENSE_CAMERA = 0.1;
 const BALL_VELOCITY = 45; // Speed of the ball
-const MIN_PHI_ANGLE = -89; // Minimum vertical angle for the camera
-const MAX_PHI_ANGLE = 89; // Maximum vertical angle for the camera
+const MIN_PHI_ANGLE = 0; // Minimum vertical angle for the camera
+const MAX_PHI_ANGLE = 25; // Maximum vertical angle for the camera
 
 // ============================ LISTENERS ===========================
 // Animation control
@@ -59,43 +59,49 @@ function onKeyDownMove(event) {
     switch(event.key.toLowerCase()) {
         case 'w': {
             // Move ball forward along camera's local Y axis (ignore Z)
-            let forward = gCamera.getForwardDirection();
-            forward = vec3(forward[0], forward[1], 0); // ignore Z
-            forward = normalize(forward);
-            gBall.velocity.translation = mult(BALL_VELOCITY, forward);
+            // let forward = gCamera.getForwardDirection();
+            // forward = vec3(forward[0], forward[1], 0); // ignore Z
+            // forward = normalize(forward);
+            // gBall.velocity.translation = mult(BALL_VELOCITY, forward);
+            gBall.velocity.translation[1] = BALL_VELOCITY;
             break;
         }
         case 's': {
             // Move ball backward along camera's local Y axis (ignore Z)
-            let forward = gCamera.getForwardDirection();
-            forward = vec3(forward[0], forward[1], 0); // ignore Z
-            forward = normalize(forward);
-            gBall.velocity.translation = mult(-BALL_VELOCITY, forward);
+            // let forward = gCamera.getForwardDirection();
+            // forward = vec3(forward[0], forward[1], 0); // ignore Z
+            // forward = normalize(forward);
+            // gBall.velocity.translation = mult(-BALL_VELOCITY, forward);
+            gBall.velocity.translation[1] = -BALL_VELOCITY;
             break;
         }
         case 'd': {
             // Move ball right along camera's local X axis (ignore Z)
-            let forward = gCamera.getForwardDirection();
-            let right = vec3(forward[1], -forward[0], 0); // perpendicular in XY plane
-            right = normalize(right);
-            gBall.velocity.translation = mult(BALL_VELOCITY, right);
+            // let forward = gCamera.getForwardDirection();
+            // let right = vec3(forward[1], -forward[0], 0); // perpendicular in XY plane
+            // right = normalize(right);
+            // gBall.velocity.translation = mult(BALL_VELOCITY, right);
+            gBall.velocity.translation[0] = BALL_VELOCITY;
             break;
         }
         case 'a': {
             // Move ball left along camera's local X axis (ignore Z)
-            let forward = gCamera.getForwardDirection();
-            let left = vec3(-forward[1], forward[0], 0); // perpendicular in XY plane
-            left = normalize(left);
-            gBall.velocity.translation = mult(BALL_VELOCITY, left);
+            // let forward = gCamera.getForwardDirection();
+            // let left = vec3(-forward[1], forward[0], 0); // perpendicular in XY plane
+            // left = normalize(left);
+            // gBall.velocity.translation = mult(BALL_VELOCITY, left);
+            gBall.velocity.translation[0] = -BALL_VELOCITY;
             break;
         }
         case 'q':
             // Move ball up along world Z axis
-            gBall.velocity.translation = vec3(0, 0, BALL_VELOCITY);
+            // gBall.velocity.translation = vec3(0, 0, BALL_VELOCITY);
+            gBall.velocity.translation[2] = BALL_VELOCITY;
             break;
         case 'e':
             // Move ball down along world Z axis
-            gBall.velocity.translation = vec3(0, 0, -BALL_VELOCITY);
+            // gBall.velocity.translation = vec3(0, 0, -BALL_VELOCITY);
+            gBall.velocity.translation[2] = -BALL_VELOCITY;
             break;
     }
 }
