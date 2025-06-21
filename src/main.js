@@ -1,17 +1,16 @@
-import Engine from "./engine";
-import Object3D from "./object3d";
-import "./style.css";
+import Engine from "./engine.js";
+import Object3D from "./object3d.js";
 
-import { Cube, Plain, Sphere, SphereUV } from "./meshes";
-import { isKeyPressed } from "./keyboard";
-import Texture from "./texture";
-import Material from "./material";
-import { rgb } from "./colors";
-import { Solid } from "./materials";
-import Mesh from "./mesh";
-import { fromObjectFile } from "./utils";
+import { Cube, Plain, Sphere, SphereUV } from "./meshes/index.js";
+import { isKeyPressed } from "./keyboard.js";
+import { fromObjectFile } from "./utils.js";
+import Texture from "./texture.js";
+import Material from "./material.js";
+import Mesh from "./mesh.js";
+import { Solid } from "./materials/index.js";
+import { rgb } from "./colors.js";
 
-import duckObj from "./assets/objects/rubber_duck/rubber-duck.obj?raw";
+// import duckObj from "./assets/objects/rubber_duck/rubber-duck.obj?raw";
 // import skullObj from "./assets/12140_Skull_v3_L2.obj?raw";
 
 const engine = new Engine();
@@ -94,17 +93,17 @@ const floor = new Object3D({
   }),
 });
 
-const duckMesh = new Mesh(fromObjectFile(duckObj));
-const duck = new Object3D({
-  position: vec3(1, 0, +6),
-  rotation: vec3(-90, 0, 0),
-  scale: vec3(0.2, 0.2, 0.2),
-  rotationSpeed: vec3(0, 0.01, 0),
-  material: new Solid({
-    color: rgb(228, 231, 22),
-  }),
-  mesh: duckMesh,
-});
+// const duckMesh = new Mesh(fromObjectFile(duckObj));
+// const duck = new Object3D({
+//   position: vec3(1, 0, +6),
+//   rotation: vec3(-90, 0, 0),
+//   scale: vec3(0.2, 0.2, 0.2),
+//   rotationSpeed: vec3(0, 0.01, 0),
+//   material: new Solid({
+//     color: rgb(228, 231, 22),
+//   }),
+//   mesh: duckMesh,
+// });
 
 // const skullMesh = new Mesh(fromObjectFile(skullObj));
 // const skull = new Object3D({
@@ -181,7 +180,7 @@ engine.init().then(() => {
   engine.addObject(floor);
   engine.addObject(texturedCube);
   engine.addObject(textureLightCube);
-  engine.addObject(duck);
+  // engine.addObject(duck);
   // engine.addObject(skull);
 
   engine.addObject(

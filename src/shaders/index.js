@@ -1,17 +1,18 @@
-import defaultVertexShaderSrc from "./default.vs?raw";
-import fixedFragmentShaderSrc from "./fixed-color.fs?raw";
-import normalFragmentShaderSrc from "./normal.fs?raw";
-import texturedVertexShaderSrc from "./textured.vs?raw";
-import texturedFragmentShaderSrc from "./textured.fs?raw";
-import solidFragmentShaderSrc from "./solid.fs?raw";
-import shadowVertexShaderSrc from "./shadow.vs?raw";
-import shadowFragmentShaderSrc from "./shadow.fs?raw";
-
 export const DEFAULT_SHADER = "default";
 
+async function loadShader(url) {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(
+      `Failed to load shader from ${url}: ${response.statusText}`
+    );
+  }
+  return response.text();
+}
+
 const solid = {
-  vertexSrc: defaultVertexShaderSrc,
-  fragmentSrc: solidFragmentShaderSrc,
+  vertexSrc: loadShader("/src/shaders/default.vs"),
+  fragmentSrc: loadShader("/src/shaders/solid.fs"),
   attributes: {
     aPosition: { size: 3 },
     aNormal: { size: 3 },
@@ -34,8 +35,8 @@ const solid = {
 };
 
 const fixed = {
-  vertexSrc: defaultVertexShaderSrc,
-  fragmentSrc: fixedFragmentShaderSrc,
+  vertexSrc: loadShader("/src/shaders/default.vs"),
+  fragmentSrc: loadShader("/src/shaders/fixed-color.fs"),
   attributes: {
     aPosition: { size: 3 },
     aNormal: { size: 3 },
@@ -44,8 +45,8 @@ const fixed = {
 };
 
 const normal = {
-  vertexSrc: defaultVertexShaderSrc,
-  fragmentSrc: normalFragmentShaderSrc,
+  vertexSrc: loadShader("/src/shaders/default.vs"),
+  fragmentSrc: loadShader("/src/shaders/normal.fs"),
   attributes: {
     aPosition: { size: 3 },
     aNormal: { size: 3 },
@@ -55,8 +56,8 @@ const normal = {
 };
 
 const textured = {
-  vertexSrc: texturedVertexShaderSrc,
-  fragmentSrc: texturedFragmentShaderSrc,
+  vertexSrc: loadShader("/src/shaders/textured.vs"),
+  fragmentSrc: loadShader("/src/shaders/textured.fs"),
   attributes: {
     aPosition: { size: 3 },
     aNormal: { size: 3 },
@@ -79,8 +80,8 @@ const textured = {
 };
 
 const shadow = {
-  vertexSrc: shadowVertexShaderSrc,
-  fragmentSrc: shadowFragmentShaderSrc,
+  vertexSrc: loadShader("/src/shaders/shadow.vs"),
+  fragmentSrc: loadShader("/src/shaders/shadow.fs"),
   attributes: {
     aPosition: { size: 3 },
   },

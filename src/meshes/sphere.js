@@ -1,10 +1,10 @@
-import Mesh from "../mesh";
+import Mesh from "../mesh.js";
 import {
   expandVertices,
   generateFlatNormals,
   generateSmoothNormals,
   cartesianToPolar,
-} from "../utils";
+} from "../utils.js";
 
 function crieEsfera(ndivisoes = 2) {
   // começamos com os vértices de um balão

@@ -1,4 +1,4 @@
-import Transform from "./transform";
+import { getModelMatrix } from "./utils.js";
 
 /**
  * Classe que representa uma malha 3D (vertices, cores, normais, etc.)

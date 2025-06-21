@@ -1,7 +1,8 @@
-import Mesh from "./mesh";
-import AvailableShaders, { DEFAULT_SHADER } from "./shaders";
-import Material from "./material";
-import Transform from "./transform";
+import Mesh from "./mesh.js";
+import { DEFAULT_SHADER } from "./shaders/index.js";
+import Material from "./material.js";
+import Transform from "./transform.js";
+import { getModelMatrix } from "./utils.js";
 
 /**
  * Representa um objeto 3D no espaço.
@@ -184,13 +185,9 @@ class Object3D {
   /**
    * Define o shader do objeto (compatibilidade)
    * @param {string} value - Identificador do novo shader
-   * @throws {Error} Se o shader não estiver disponível
    */
   set shader(value) {
-    if (!(value in AvailableShaders)) {
-      throw new Error(`Shader ${value} not available`);
-    }
-
+    // The Engine will handle if the shader name is valid upon activation
     if (!this.material) {
       this.material = new Material({ shader: value });
     } else {

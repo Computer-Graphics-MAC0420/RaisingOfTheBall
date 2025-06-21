@@ -1,5 +1,5 @@
-import Mesh from "../mesh";
-import { square, generateFlatNormals, expandVertices } from "../utils";
+import Mesh from "../mesh.js";
+import { square, generateFlatNormals, expandVertices } from "../utils.js";
 
 class Cube extends Mesh {
   constructor({ size = 1, color = vec4(0.8, 0.8, 0.8, 1) }) {

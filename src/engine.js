@@ -1,9 +1,9 @@
-import Object3D from "./object3d";
-import Shader from "./shader";
-import AvailableShaders from "./shaders";
-import Camera from "./camera";
-import Light from "./light";
-import Texture from "./texture";
+import Object3D from "./object3d.js";
+import Shader from "./shader.js";
+import AvailableShaders from "./shaders/index.js";
+import Camera from "./camera.js";
+import Light from "./light.js";
+import Texture from "./texture.js";
 
 class Engine {
   /**
@@ -369,8 +369,8 @@ class Engine {
     for (const [name, shaderConfig] of Object.entries(AvailableShaders)) {
       this.#shaders[name] = new Shader(
         this.gl,
-        shaderConfig.vertexSrc,
-        shaderConfig.fragmentSrc
+        await shaderConfig.vertexSrc,
+        await shaderConfig.fragmentSrc
       );
 
       const shader = this.#shaders[name];

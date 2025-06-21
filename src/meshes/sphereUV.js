@@ -1,5 +1,5 @@
-import Mesh from "../mesh";
-import { expandVertices, generateFlatNormals } from "../utils";
+import Mesh from "../mesh.js";
+import { expandVertices, generateFlatNormals } from "../utils.js";
 
 /**
  * Gera uma esfera UV com coordenadas de textura otimizadas.

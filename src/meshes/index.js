@@ -1,6 +1,6 @@
-import Cube from "./cube";
-import Sphere from "./sphere";
-import Plain from "./plain";
-import SphereUV from "./sphereUV";
+import Cube from "./cube.js";
+import Sphere from "./sphere.js";
+import Plain from "./plain.js";
+import SphereUV from "./sphereUV.js";
 
 export { Cube, Sphere, Plain, SphereUV };
