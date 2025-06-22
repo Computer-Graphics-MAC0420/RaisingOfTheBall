@@ -3,18 +3,19 @@ class Ball {
     constructor() {
         // Shape properties
         this.radius = 20;
-        this.resolution = 4;
+        this.resolution = 2;
         this.vertexPosition = [];
         this.normalVectors = [];
 
         // Movement properties
-        this.center = vec3(0, 0, 0);
+        this.center = vec3(70, 0, 20);
         this.theta = vec3(0, 0, 0);
         this.velocity = {
             rotation: vec3(0, 0, 0), 
             translation: vec3(0, 0, 0)
         }
         this.modelOriginal = mat4();
+        this.modelOri = mat4(); // Ball's orientation matrix
 
         // Other properties
         this.materialProperties = {
@@ -24,16 +25,18 @@ class Ball {
         };
         this.vao = null;
 
-        // Initial and Current angles
-        // this.previousTheta = vec3(0.0, 0.0, 0.0);
-        // this.currentTheta = initTheta;
+        // Physics properties
+        this.mass = 1.0; // Mass of the ball
+        this.acceleration = vec3(0, 0, 0); // Current acceleration
+        this.force = vec3(0, 0, 0); // Current force
+        this.onGround = false;
+        this.jumpResquested = false;
 
-        // Nail's coordinate system
-        // this.coordinateX = vec3(1.0, 0.0, 0.0);
-        // this.coordinateY = vec3(0.0, 1.0, 0.0);
-        // this.coordinateZ = vec3(0.0, 0.0, -1.0);
-
-        // TODO: physics properties
+        this.gravity = vec3(0, 0, GRAVITY); // Gravity vector (downward Z)
+        this.friction = FRICTION; // Friction coefficient
+        this.elasticity = BOUNCE_FACTOR; // Elasticity for bounce
+        this.maxSpeed = MAX_SPEED;
+        this.angularVelocity = vec3(0, 0, 0); // For rolling/rotation
 
         this.fillVertexAndNormalVectors();
     }
@@ -121,8 +124,18 @@ class Ball {
         gl.bindVertexArray(null);
     }
 
-    // ========================= BALL UPDATES ========================
     updatePosition(delta) {
+        // GRAVITY
+        this.acceleration = add(this.acceleration, this.gravity);
+        this.velocity.translation = add(this.velocity.translation, mult(delta, this.acceleration));
+        this.acceleration = vec3(0, 0, 0); // Reset acceleration for next frame
+
+        // Apply friction to horizontal movement (X and Y)
+        this.velocity.translation[0] *= this.friction;
+        this.velocity.translation[1] *= this.friction;
+        // Optionally, apply friction to Z if you want air resistance
+        // this.velocity.translation[2] *= this.friction;
+
         let cameraBase = mat3();
         cameraBase[0] = gCamera.coordinateX;
         cameraBase[1] = gCamera.coordinateY;
@@ -130,20 +143,54 @@ class Ball {
         
         const vel = mult(cameraBase, this.velocity.translation);
         this.center = add(this.center, mult(delta, vel));
+
+        // GROUND
+        if (this.center[2] - this.radius < 0) {
+            this.center[2] = this.radius;
+            // Bounce if falling downwards
+            if (this.velocity.translation[2] < 0) {
+                this.velocity.translation[2] = -this.velocity.translation[2] * this.elasticity; // small bounce
+                // Stop very small bounces
+                if (Math.abs(this.velocity.translation[2]) < 1) {
+                    this.velocity.translation[2] = 0;
+                }
+            }
+            this.onGround = true;
+        } else {
+            this.onGround = false;
+        }
         
         // TODO: implement collision detection and response
-        
+
         let model = mat4();
         model = mult(model, translate(this.center[0], this.center[1], this.center[2]));
         return model;
     }
     updateRotation(delta) {
-        // this.theta = add(this.theta, mult(delta, this.velocity.rotation));
-        let model = mat4();
-        // model = mult(model, rotateX(this.theta[0]));
-        // model = mult(model, rotateY(this.theta[1]));
-        // model = mult(model, rotateZ(this.theta[2]));
-        return model;
+        // Calculate the velocity vector in world coordinates
+        let cameraBase = mat3();
+        cameraBase[0] = gCamera.coordinateX;
+        cameraBase[1] = gCamera.coordinateY;
+        cameraBase[2] = gCamera.coordinateZ;
+        const vel = mult(cameraBase, this.velocity.translation);
+
+        // Compute speed and direction
+        const speed = Math.sqrt(vel[0]*vel[0] + vel[1]*vel[1] + vel[2]*vel[2]);
+        if (speed > 0.0001) {
+            // The axis of rotation is perpendicular to the velocity and the ground (z axis)
+            let axis = vec3(-vel[1], vel[0], 0); // perpendicular in XY plane
+            // Normalize axis
+            const axisLen = Math.sqrt(axis[0]*axis[0] + axis[1]*axis[1] + axis[2]*axis[2]);
+            if (axisLen > 0.0001) {
+                axis = vec3(axis[0]/axisLen, axis[1]/axisLen, axis[2]/axisLen);
+                // The angle to rotate is distance/radius
+                const distance = speed * delta;
+                const angle = distance / this.radius * 180 / Math.PI; // degrees
+                // Accumulate orientation: rotate by 'angle' around 'axis' in local coordinates
+                this.modelOri = mult(rotate(angle, axis), this.modelOri);
+            }
+        }
+        return this.modelOri;
     }
     update(delta) {
         let modelRot = this.updateRotation(delta);
@@ -166,5 +213,10 @@ class Ball {
         // Draw the sphere
         gl.drawArrays(gl.TRIANGLES, 0, this.vertexPosition.length);
         gl.bindVertexArray(null);
+    }
+    Jump() {
+        // Only jump if on the ground
+        this.velocity.translation[2] = JUMP_FORCE;
+        this.onGround = false; // Set onGround to false to allow for next jump
     }
 }

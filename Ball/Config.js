@@ -16,10 +16,24 @@ const CAM = {
     far    : 2000,    
 };
 
+// ========================= CAMERA CONSTANTS =======================
 const SENSE_CAMERA = 0.1;
 const BALL_VELOCITY = 45; // Speed of the ball
 const MIN_PHI_ANGLE = 1; // Minimum vertical angle for the camera
 const MAX_PHI_ANGLE = 25; // Maximum vertical angle for the camera
+
+
+// ======================== PHYSICS CONSTANTS =======================
+// These constants control the ball's physical behavior. You can add AIR_RESISTANCE and ANGULAR_MOMENTUM for more realism.
+const GRAVITY = -9.8; // Gravity acceleration (increased for faster jump arc)
+const FRICTION = 0.98; // Friction coefficient for the ball
+const BOUNCE_FACTOR = 0.8 * 0.5; // Bounce factor for the ball
+const MAX_SPEED = 100; // Maximum speed of the ball
+const JUMP_FORCE = 50; // Force applied when jumping
+const MOVE_ON_AIR_FACTOR = 0.3; // Factor to reduce speed when moving in the air
+// const AIR_RESISTANCE = 0.99; // Uncomment to use air resistance
+// const ANGULAR_MOMENTUM = 0.95; // Uncomment to use angular momentum
+
 
 // ============================ LISTENERS ===========================
 // Animation control
@@ -57,54 +71,70 @@ function onPointerMove(event) {
 // Ball movement
 function onKeyDownMove(event) {
     switch(event.key.toLowerCase()) {
-        case 'w': {
-            gBall.velocity.translation[1] = BALL_VELOCITY;
+        case 'w':
+            if(gBall.onGround) {
+                gBall.velocity.translation[1] = BALL_VELOCITY; // Move up
+            } else {
+                gBall.velocity.translation[1] = BALL_VELOCITY * MOVE_ON_AIR_FACTOR; // Reduce speed when in air
+            }
             break;
-        }
-        case 's': {
-            gBall.velocity.translation[1] = -BALL_VELOCITY;
+        case 's':
+            if(gBall.onGround) {
+                gBall.velocity.translation[1] = -BALL_VELOCITY; // Move down
+            }
+            else {
+                gBall.velocity.translation[1] = -BALL_VELOCITY * MOVE_ON_AIR_FACTOR; // Reduce speed when in air
+            }
             break;
-        }
-        case 'd': {
-            gBall.velocity.translation[0] = BALL_VELOCITY;
+        case 'd':
+            if(gBall.onGround) {
+                gBall.velocity.translation[0] = BALL_VELOCITY; // Move right
+            }
+            else {
+                gBall.velocity.translation[0] = BALL_VELOCITY * MOVE_ON_AIR_FACTOR; // Reduce speed when in air
+            }
             break;
-        }
-        case 'a': {
-            gBall.velocity.translation[0] = -BALL_VELOCITY;
+        case 'a':
+            if(gBall.onGround) {
+                gBall.velocity.translation[0] = -BALL_VELOCITY; // Move left
+            }
+            else {
+                gBall.velocity.translation[0] += -BALL_VELOCITY * MOVE_ON_AIR_FACTOR; // Reduce speed when in air
+            }
             break;
-        }
         case 'q':
+            // THIS SHOULDN'T EXIST
             gBall.velocity.translation[2] = BALL_VELOCITY;
             break;
-        case 'e':
+            case 'e':
+            // THIS SHOULDN'T EXIST
             gBall.velocity.translation[2] = -BALL_VELOCITY;
             break;
         case ' ':
-            gCamera.thetaAngle += 45;
-            gCamera.thetaAngle %= 360; // Keep thetaAngle within [0, 360)
-            gCamera.updateCoordinates();
-            break;
-        case '8':
-            gBall.velocity.translation[1] = -BALL_VELOCITY;
-            renderStep(1);
-            gBall.velocity.translation[1] = 0; // Stop horizontal movement
-            break;
-        case '9':
-            gBall.velocity.translation[1] = BALL_VELOCITY;
-            renderStep(1);
-            gBall.velocity.translation[1] = 0; // Stop horizontal movement
+            if(gBall.onGround)
+                gBall.Jump();
             break;
     }
 }
 function onKeyUpMove(event) {
-    switch(event.key.toLowerCase()) {
-        case 'w':
-        case 's':
-        case 'a':
-        case 'd':
-        case 'q':
-        case 'e':
-            gBall.velocity.translation = vec3(0, 0, 0);
-            break;
-    }
+    // switch(event.key.toLowerCase()) {
+    //     case 'w':
+    //         gBall.velocity.translation[1] -= BALL_VELOCITY;
+    //         break;
+    //     case 's':
+    //         gBall.velocity.translation[1] += BALL_VELOCITY;
+    //         break;
+    //     case 'a':
+    //         gBall.velocity.translation[0] += BALL_VELOCITY;
+    //         break;
+    //     case 'd':
+    //         gBall.velocity.translation[0] -= BALL_VELOCITY;
+    //         break;
+    //     case 'q':
+    //         gBall.velocity.translation[2] -= BALL_VELOCITY;
+    //         break;
+    //     case 'e':
+    //         gBall.velocity.translation[2] += BALL_VELOCITY;
+    //         break;
+    // }
 }

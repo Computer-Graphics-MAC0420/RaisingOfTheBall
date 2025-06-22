@@ -125,7 +125,7 @@ function main() {
     gObjects.push(YSphere);
     // Orange - Z Axis
     const ZSphere = new Esfera(
-        vec3(10,10,10),
+        vec3(80,80,80),
         0,
         {   
             amb: vec4(1.0, 0.5, 0.0, 1.0), 
@@ -134,7 +134,7 @@ function main() {
         },
         vec3(0, 0, 0),
         vec3(0, 0, 0),
-        vec3(0.0, 0.0, -20.0),
+        vec3(0.0, 0.0, 80.0),
         true, 1,
     );
     gObjects.push(ZSphere);
@@ -169,7 +169,7 @@ function drawAnimation() {
     let now = Date.now();
     let deltaTime = (now - gLastTime) / 1000;
     gLastTime = now;
-    renderStep(deltaTime);    
+    renderStep(deltaTime*4);    
 
     window.requestAnimationFrame(drawAnimation);
 }
