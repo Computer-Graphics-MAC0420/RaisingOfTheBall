@@ -4,14 +4,14 @@ const BALL_VELOCITY = 0.05; // Speed at which velocity is applied
 const MAX_BALL_VELOCITY = 0.1; // Max velocity in any direction
 const AIR_CONTROL_FACTOR = 0.04;  // Factor that reduces speed increase when in air
 
-const ROLL_FACTOR = 0.1; // Reduce this to make the ball roll less
+const ROLL_FACTOR = 0.8; // Reduce this to make the ball roll less
 const FRICTION = 0.98; // Friction coefficient for the ball
 const ANGULAR_FRICTION = 0.98; // Slightly increased friction for a more gradual stop
 
 const FATOR_DE_CONVERSAO = 0.000005;
 const GRAVITY = -9.81 * FATOR_DE_CONVERSAO; // Gravity acceleration (increased for faster jump arc)
 const BOUNCE_FACTOR = 0.6; // Bounce factor for the ball
-const JUMP_FORCE = 0.05; // Force applied when jumping
+const JUMP_FORCE = 0.07; // Force applied when jumping
 
 // A small value to treat as zero, to stop tiny bounces and movements
 const EPSILON = 0.001; 
@@ -21,6 +21,7 @@ class Ball3D extends Object3D {
         super(options);
         // Propriedades do shape
         this.radius = size;
+        console.log("Ball3D created with radius:", this.radius);
         
         // Propriedades de movimento
         this.center = options.position || vec3(0, 0, 0);
@@ -109,27 +110,24 @@ class Ball3D extends Object3D {
         const speed = Math.sqrt(vel[0]*vel[0] + vel[1]*vel[1]); // Only consider horizontal speed for rolling
 
         if (speed > 0.0001) { // A slightly larger threshold to avoid micro-rotations
-            // The axis of rotation is perpendicular to the velocity and the ground (z axis)
-            // Invert the axis to roll in the opposite direction
             let axis = vec3(vel[1], -vel[0], 0); // opposite direction in XY plane
             
-            // Normalize axis
             const axisLen = Math.sqrt(axis[0]*axis[0] + axis[1]*axis[1]);
             if (axisLen > 0.0001) {
-            axis = vec3(axis[0]/axisLen, axis[1]/axisLen, 0);
-            
-            // The angle to rotate is distance/radius
-            const distance = speed * delta;
-            
-            // Calculate angular velocity (radians per frame), reduced by ROLL_FACTOR
-            const angularSpeed = (distance / this.radius) * ROLL_FACTOR;
+                axis = vec3(axis[0]/axisLen, axis[1]/axisLen, 0);
+                
+                // The angle to rotate is distance/radius
+                const distance = speed * delta;
+                
+                // Calculate angular velocity (radians per frame), reduced by ROLL_FACTOR
+                const angularSpeed = (distance / this.radius) * ROLL_FACTOR;
 
-            // Set the angular velocity directly based on the current speed, don't accumulate
-            this.angularVelocity = vec3(
-                axis[0] * angularSpeed,
-                axis[1] * angularSpeed,
-                0 // Assuming rolling on a flat surface
-            );
+                // Set the angular velocity directly based on the current speed, don't accumulate
+                this.angularVelocity = vec3(
+                    axis[0] * angularSpeed,
+                    axis[1] * angularSpeed,
+                    0 // Assuming rolling on a flat surface
+                );
             }
         } else {
             // If the ball is not moving, apply friction to the existing angular velocity

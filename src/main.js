@@ -105,14 +105,14 @@ const ballMaterial = new Material({
   texture: ballTexture,
   specularFactor: 0.2,
 });
-const ball = new Ball3D(1, {
+const radius = 20; // Raio da esfera
+const ball = new Ball3D(radius, {
   position: vec3(-4, 0, 6),
   rotationSpeed: vec3(0, 0, 0),
   // material: new Solid({
   //   color: rgb(255, 0, 0),
   // }),
   mesh: new SphereUV({
-    size: 20,
     segments: 32,
     rings: 16,
     smooth: true,
