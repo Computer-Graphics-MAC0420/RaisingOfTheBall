@@ -148,38 +148,24 @@ class Engine {
         const cubeMesh = cube.mesh;
         if (!cubeMesh || !cubeMesh.size) continue;
 
-        const cubeBaseSize = cubeMesh.size;
-        const cubeScale = cube.scale;
-        const cubePosition = cube.position;
+        // Check if the object is rotated
+        const isRotated = cube.rotation[0] !== 0 || cube.rotation[1] !== 0 || cube.rotation[2] !== 0;
+        
+        let result;
+        if (isRotated) {
+          // Use simpler OOBB collision detection for rotated objects
+          result = this.checkSphereOOBBCollisionSimple(ball, cube);
+        } else {
+          // Use simpler AABB collision detection for non-rotated objects
+          result = this.checkSphereAABBCollision(ball, cube);
+        }
 
-        const halfSize = vec3(
-          (cubeBaseSize / 2) * cubeScale[0],
-          (cubeBaseSize / 2) * cubeScale[1],
-          (cubeBaseSize / 2) * cubeScale[2]
-        );
-
-        const cubeMin = subtract(cubePosition, halfSize);
-        const cubeMax = add(cubePosition, halfSize);
-
-        const ballCenter = ball.center;
-        const ballRadius = ball.radius;
-
-        const closestPoint = vec3(
-          Math.max(cubeMin[0], Math.min(ballCenter[0], cubeMax[0])),
-          Math.max(cubeMin[1], Math.min(ballCenter[1], cubeMax[1])),
-          Math.max(cubeMin[2], Math.min(ballCenter[2], cubeMax[2]))
-        );
-
-        const distanceVec = subtract(ballCenter, closestPoint);
-        const distanceSq = dot(distanceVec, distanceVec);
-
-        if (distanceSq < ballRadius * ballRadius) {
-          const distance = Math.sqrt(distanceSq);
-          const penetration = ballRadius - distance;
-          const normal = normalize(distanceVec);
-
+        if (result.colliding) {
+          // Debug log
+          console.log("Collision detected with object at position:", cube.position, "Normal:", result.normal, "Penetration:", result.penetration);
+          
           // Correct position
-          ball.center = add(ball.center, mult(penetration, normal));
+          ball.center = add(ball.center, mult(result.penetration, result.normal));
 
           // Apply bouncing behavior for all collisions
           let cameraBase = mat3();
@@ -188,13 +174,13 @@ class Engine {
           cameraBase[2] = this.#camera.coordinateZ;
           const worldVelocity = mult(cameraBase, ball.velocity.translation);
 
-          const dotProduct = dot(worldVelocity, normal);
+          const dotProduct = dot(worldVelocity, result.normal);
           
           // Only bounce if moving towards the surface
           if (dotProduct < 0) {
             const reflectionWorld = subtract(
               worldVelocity,
-              mult(2 * dotProduct, normal)
+              mult(2 * dotProduct, result.normal)
             );
 
             const cameraBaseInverse = transpose(cameraBase);
@@ -218,12 +204,271 @@ class Engine {
           }
 
           // Check if collision is on top of the object (normal pointing up)
-          if (normal[2] > 0.7) {
+          if (result.normal[2] > 0.7) {
             ball.onGround = true;
           }
         }
       }
     }
+  }
+
+  /**
+   * Check collision between a sphere and an Oriented Bounding Box (OOBB)
+   * @param {Ball3D} ball - The ball/sphere
+   * @param {Object3D} cube - The cube object with rotation
+   * @returns {Object} Collision result with colliding, normal, and penetration
+   */
+  checkSphereOOBBCollision(ball, cube) {
+    const cubeBaseSize = cube.mesh.size;
+    const cubeScale = cube.scale;
+    const cubePosition = cube.position;
+    const cubeRotation = cube.rotation;
+
+    // Build transformation matrices manually for better control
+    const translationMatrix = translate(cubePosition[0], cubePosition[1], cubePosition[2]);
+    const rotationMatrix = mult(
+      mult(
+        rotateZ(cubeRotation[2]),
+        rotateY(cubeRotation[1])
+      ),
+      rotateX(cubeRotation[0])
+    );
+    const scaleMatrix = scale(cubeScale[0], cubeScale[1], cubeScale[2]);
+    
+    // Combine transformations: T * R * S
+    const modelMatrix = mult(mult(translationMatrix, rotationMatrix), scaleMatrix);
+    
+    // Get the inverse transformation matrix
+    let inverseMatrix;
+    try {
+      inverseMatrix = inverse(modelMatrix);
+    } catch (error) {
+      console.warn("Matrix not invertible, falling back to AABB collision");
+      return this.checkSphereAABBCollision(ball, cube);
+    }
+
+    // Transform ball center to cube's local coordinate system
+    const ballCenterHomogeneous = vec4(ball.center[0], ball.center[1], ball.center[2], 1.0);
+    const localBallCenterHomo = mult(inverseMatrix, ballCenterHomogeneous);
+    const localBallCenter = vec3(localBallCenterHomo[0], localBallCenterHomo[1], localBallCenterHomo[2]);
+
+    // In local space, the cube is a unit cube scaled by the base size
+    const halfSize = cubeBaseSize / 2;
+    const localHalfSize = vec3(halfSize, halfSize, halfSize);
+
+    // Find closest point on the local AABB to the local ball center
+    const closestPointLocal = vec3(
+      Math.max(-localHalfSize[0], Math.min(localBallCenter[0], localHalfSize[0])),
+      Math.max(-localHalfSize[1], Math.min(localBallCenter[1], localHalfSize[1])),
+      Math.max(-localHalfSize[2], Math.min(localBallCenter[2], localHalfSize[2]))
+    );
+
+    // Calculate distance in local space
+    const distanceVecLocal = subtract(localBallCenter, closestPointLocal);
+    const distanceLocal = Math.sqrt(dot(distanceVecLocal, distanceVecLocal));
+    
+    // Scale the ball radius to local space - we need to account for non-uniform scaling
+    // Use the minimum scale factor to be conservative
+    const minScale = Math.min(cubeScale[0], cubeScale[1], cubeScale[2]);
+    const localBallRadius = ball.radius / minScale;
+
+    if (distanceLocal < localBallRadius) {
+      // Collision detected
+      const penetration = localBallRadius - distanceLocal;
+      
+      // Calculate normal in local space
+      let normalLocal;
+      if (distanceLocal > 0.001) {
+        normalLocal = normalize(distanceVecLocal);
+      } else {
+        // Ball center is inside the box, find the closest face
+        const distToFaces = [
+          localHalfSize[0] - Math.abs(localBallCenter[0]), // distance to X faces
+          localHalfSize[1] - Math.abs(localBallCenter[1]), // distance to Y faces
+          localHalfSize[2] - Math.abs(localBallCenter[2])  // distance to Z faces
+        ];
+        
+        const minDistIndex = distToFaces.indexOf(Math.min(...distToFaces));
+        normalLocal = vec3(0, 0, 0);
+        normalLocal[minDistIndex] = localBallCenter[minDistIndex] > 0 ? 1 : -1;
+      }
+
+      // Transform normal back to world space using the normal matrix
+      // Normal matrix is the inverse transpose of the upper-left 3x3 of the model matrix
+      const rotationScaleMatrix = mult(rotationMatrix, scaleMatrix);
+      let normalMatrix;
+      try {
+        normalMatrix = transpose(inverse(rotationScaleMatrix));
+      } catch (error) {
+        // Fallback: just use rotation matrix for normal transformation
+        normalMatrix = transpose(rotationMatrix);
+      }
+      
+      const normalWorldHomo = mult(normalMatrix, vec4(normalLocal[0], normalLocal[1], normalLocal[2], 0.0));
+      const normalWorld = normalize(vec3(normalWorldHomo[0], normalWorldHomo[1], normalWorldHomo[2]));
+
+      // Scale penetration back to world space
+      const worldPenetration = penetration * minScale;
+
+      return {
+        colliding: true,
+        normal: normalWorld,
+        penetration: worldPenetration
+      };
+    }
+
+    return {
+      colliding: false,
+      normal: vec3(0, 0, 0),
+      penetration: 0
+    };
+  }
+
+  /**
+   * Simple OOBB collision detection using SAT (Separating Axis Theorem) approach
+   * More robust than the complex matrix transformation approach
+   * @param {Ball3D} ball - The ball/sphere
+   * @param {Object3D} cube - The cube object
+   * @returns {Object} Collision result
+   */
+  checkSphereOOBBCollisionSimple(ball, cube) {
+    const cubeBaseSize = cube.mesh.size;
+    const cubeScale = cube.scale;
+    const cubePosition = cube.position;
+    const cubeRotation = cube.rotation;
+
+    // Calculate half extents in local space
+    const halfExtents = vec3(
+      (cubeBaseSize / 2) * cubeScale[0],
+      (cubeBaseSize / 2) * cubeScale[1],
+      (cubeBaseSize / 2) * cubeScale[2]
+    );
+
+    // Calculate cube's local axes (oriented axes)
+    const rotX = rotateX(cubeRotation[0]);
+    const rotY = rotateY(cubeRotation[1]);
+    const rotZ = rotateZ(cubeRotation[2]);
+    const rotMatrix = mult(mult(rotZ, rotY), rotX);
+
+    // Extract the three oriented axes from rotation matrix
+    const axisX = vec3(rotMatrix[0][0], rotMatrix[1][0], rotMatrix[2][0]);
+    const axisY = vec3(rotMatrix[0][1], rotMatrix[1][1], rotMatrix[2][1]);
+    const axisZ = vec3(rotMatrix[0][2], rotMatrix[1][2], rotMatrix[2][2]);
+
+    // Vector from cube center to ball center
+    const ballToCube = subtract(ball.center, cubePosition);
+
+    // Find closest point on the OBB to the sphere center
+    let closestPoint = vec3(0, 0, 0);
+    
+    // Project the ball-to-cube vector onto each axis and clamp to the box extents
+    const projX = dot(ballToCube, axisX);
+    const projY = dot(ballToCube, axisY);
+    const projZ = dot(ballToCube, axisZ);
+
+    const clampedX = Math.max(-halfExtents[0], Math.min(projX, halfExtents[0]));
+    const clampedY = Math.max(-halfExtents[1], Math.min(projY, halfExtents[1]));
+    const clampedZ = Math.max(-halfExtents[2], Math.min(projZ, halfExtents[2]));
+
+    // Construct the closest point in world space
+    closestPoint = add(cubePosition, 
+      add(add(
+        mult(clampedX, axisX),
+        mult(clampedY, axisY)),
+        mult(clampedZ, axisZ)
+      )
+    );
+
+    // Check for collision
+    const distanceVec = subtract(ball.center, closestPoint);
+    const distanceSq = dot(distanceVec, distanceVec);
+    const ballRadius = ball.radius;
+
+    if (distanceSq < ballRadius * ballRadius) {
+      const distance = Math.sqrt(distanceSq);
+      const penetration = ballRadius - distance;
+      
+      let normal;
+      if (distance > 0.001) {
+        normal = normalize(distanceVec);
+      } else {
+        // Ball center is inside the box, find the axis with minimum penetration
+        const penetrations = [
+          halfExtents[0] - Math.abs(projX),
+          halfExtents[1] - Math.abs(projY),
+          halfExtents[2] - Math.abs(projZ)
+        ];
+        
+        const minPenIndex = penetrations.indexOf(Math.min(...penetrations));
+        const axes = [axisX, axisY, axisZ];
+        const projections = [projX, projY, projZ];
+        
+        normal = mult((projections[minPenIndex] > 0 ? 1 : -1), axes[minPenIndex]);
+      }
+
+      return {
+        colliding: true,
+        normal: normal,
+        penetration: penetration
+      };
+    }
+
+    return {
+      colliding: false,
+      normal: vec3(0, 0, 0),
+      penetration: 0
+    };
+  }
+
+  /**
+   * Fallback AABB collision detection for cases where OOBB fails
+   * @param {Ball3D} ball - The ball/sphere
+   * @param {Object3D} cube - The cube object
+   * @returns {Object} Collision result
+   */
+  checkSphereAABBCollision(ball, cube) {
+    const cubeBaseSize = cube.mesh.size;
+    const cubeScale = cube.scale;
+    const cubePosition = cube.position;
+
+    const halfSize = vec3(
+      (cubeBaseSize / 2) * cubeScale[0],
+      (cubeBaseSize / 2) * cubeScale[1],
+      (cubeBaseSize / 2) * cubeScale[2]
+    );
+
+    const cubeMin = subtract(cubePosition, halfSize);
+    const cubeMax = add(cubePosition, halfSize);
+
+    const ballCenter = ball.center;
+    const ballRadius = ball.radius;
+
+    const closestPoint = vec3(
+      Math.max(cubeMin[0], Math.min(ballCenter[0], cubeMax[0])),
+      Math.max(cubeMin[1], Math.min(ballCenter[1], cubeMax[1])),
+      Math.max(cubeMin[2], Math.min(ballCenter[2], cubeMax[2]))
+    );
+
+    const distanceVec = subtract(ballCenter, closestPoint);
+    const distanceSq = dot(distanceVec, distanceVec);
+
+    if (distanceSq < ballRadius * ballRadius) {
+      const distance = Math.sqrt(distanceSq);
+      const penetration = ballRadius - distance;
+      const normal = distance > 0.001 ? normalize(distanceVec) : vec3(0, 0, 1);
+
+      return {
+        colliding: true,
+        normal: normal,
+        penetration: penetration
+      };
+    }
+
+    return {
+      colliding: false,
+      normal: vec3(0, 0, 0),
+      penetration: 0
+    };
   }
 
   render() {

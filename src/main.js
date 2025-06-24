@@ -50,7 +50,7 @@ const ballMaterial = new Material({
 });
 const radius = 20; // Raio da esfera
 const ball = new Ball3D(radius, {
-  position: vec3(-4, 0, 60),
+  position: vec3(-4, 0, 100), // Start higher up to test falling
   rotationSpeed: vec3(0, 0, 0),
   // material: new Solid({
   //   color: rgb(255, 0, 0),
@@ -66,7 +66,7 @@ const ball = new Ball3D(radius, {
 // Additional collidable objects for testing bouncing behavior
 const obj2 = new Object3D({
   position: vec3(-80, 0, 10),
-  rotation: vec3(0, 0, 0),
+  rotation: vec3(45, 0, 0),
   scale: vec3(5, 5, 5),
   material: new Solid({
     color: rgb(83, 204, 83),
@@ -109,9 +109,6 @@ engine.init(ball).then(() => {
   engine.addObject(obj2);
   engine.addObject(obj3);
   engine.addObject(obj4);
-  engine.addObject(obj2);
-  engine.addObject(obj3);
-  engine.addObject(obj4);
 
   // Configurar a luz com opção para mostrar o gizmo (representação visual)
   engine.light.position = lightPos;
@@ -129,6 +126,16 @@ engine.init(ball).then(() => {
       console.log("Posição da luz:", engine.light.position);
     }
   });
+
+  // Add debug info about controls
+  console.log("Controls:");
+  console.log("W/A/S/D - Move ball");
+  console.log("Space - Jump");
+  console.log("Mouse - Look around (click to enable)");
+  console.log("I/J/K/L - Move light");
+  console.log("U/O - Move light up/down");
+  console.log("P - Print light position");
+  console.log("ESC - Release mouse");
 
   engine.onUpdate = (dt) => {
     handleMovement(dt);
