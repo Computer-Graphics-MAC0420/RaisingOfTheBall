@@ -8,10 +8,10 @@ const ROLL_FACTOR = 0.8; // Reduce this to make the ball roll less
 const FRICTION = 0.98; // Friction coefficient for the ball
 const ANGULAR_FRICTION = 0.98; // Slightly increased friction for a more gradual stop
 
-const FATOR_DE_CONVERSAO = 0.000005;
+const FATOR_DE_CONVERSAO = 0.00001;
 const GRAVITY = -9.81 * FATOR_DE_CONVERSAO; // Gravity acceleration (increased for faster jump arc)
 const BOUNCE_FACTOR = 0.6; // Bounce factor for the ball
-const JUMP_FORCE = 0.07; // Force applied when jumping
+const JUMP_FORCE = 0.1; // Force applied when jumping
 
 // A small value to treat as zero, to stop tiny bounces and movements
 const EPSILON = 0.001; 
