@@ -29,72 +29,13 @@ const defaultMaterial = new Solid({
 });
 
 const obj1 = new Object3D({
-  position: vec3(-0.7, 0, 0),
-  rotationSpeed: vec3(0.1, 0.03, 0.01),
+  position: vec3(0, 0, 0),
   material: defaultMaterial,
   mesh: new Cube({
-    size: 15,
+    size: 20,
   }),
+  collidable: true,
 });
-
-const obj2 = new Object3D({
-  position: vec3(2, 3, 1.7),
-  rotationSpeed: vec3(0, 0.01, 0.1),
-  material: defaultMaterial,
-  mesh: new Cube({
-    size: 15,
-  }),
-});
-
-const sphere = new Object3D({
-  position: vec3(-0.7, 2.5, 0),
-  rotationSpeed: vec3(0.01, 0.01, 0),
-  material: new Solid({
-    color: rgb(30, 117, 218),
-  }),
-  mesh: new Sphere({
-    density: 6,
-    smooth: true,
-    size: 7
-  }),
-});
-
-const floor = new Object3D({
-  position: vec3(0, -2000, 0),
-  scale: vec3(200, 200, 200),
-  material: new Solid({
-    color: rgb(185, 185, 185),
-  }),
-  mesh: new Plain({
-    width: 100,
-    height: 100,
-    color: vec4(0.5, 0.5, 0.5, 1),
-  }),
-});
-
-// const duckMesh = new Mesh(fromObjectFile(duckObj));
-// const duck = new Object3D({
-//   position: vec3(1, 0, +6),
-//   rotation: vec3(-90, 0, 0),
-//   scale: vec3(0.2, 0.2, 0.2),
-//   rotationSpeed: vec3(0, 0.01, 0),
-//   material: new Solid({
-//     color: rgb(228, 231, 22),
-//   }),
-//   mesh: duckMesh,
-// });
-
-// const skullMesh = new Mesh(fromObjectFile(skullObj));
-// const skull = new Object3D({
-//   position: vec3(-3, 0, 0),
-//   rotation: vec3(-90, 0, 0),
-//   scale: vec3(0.02, 0.02, 0.02),
-//   rotationSpeed: vec3(0, 0.01, 0),
-//   material: new Solid({
-  //     color: rgb(229, 235, 183),
-  //   }),
-  //   mesh: skullMesh,
-  // });
 
 const ballTexture = new Texture(engine.gl, "./src/assets/pixar.png", {
   filter: "LINEAR",
@@ -121,106 +62,8 @@ const ball = new Ball3D(radius, {
 });
 
 engine.init(ball).then(() => {
-  console.log("Engine initialized");
-
-  // Load the textures
-  const earthTexture = new Texture(engine.gl, "./src/assets/earth-map.jpg", {
-    filter: "LINEAR",
-    mipmap: true,
-  });
-
-  const dirtTexture = new Texture(engine.gl, "./src/assets/dirt.png", {
-    filter: "NEAREST",
-  });
-
-
-  // Criar materiais para os objetos
-  const dirtMaterial = new Material({
-    shader: "textured",
-    texture: dirtTexture,
-    specularFactor: 0.0,
-  });
-
-  const earthMaterial = new Material({
-    shader: "textured",
-    texture: earthTexture,
-    specularFactor: 0.2,
-  });
-
-
-  const texturedCube = new Object3D({
-    position: vec3(-3, 3, 1.0),
-    mesh: new Cube({
-      size: 1.0,
-    }),
-    material: dirtMaterial,
-  });
-
-  const textureLightCube = new Object3D({
-    position: vec3(3.2, 0, 0),
-    rotationSpeed: vec3(0.05, 0.1, 0.05),
-    mesh: new Cube({
-      size: 1.0,
-      color: vec4(1, 1, 1, 1),
-    }),
-    material: dirtMaterial,
-  });
-
-  const earth = new Object3D({
-    position: vec3(-3, 0, -3),
-    rotationSpeed: vec3(0, 0.01, 0),
-    mesh: new SphereUV({
-      segments: 32,
-      rings: 16,
-      size: 1,
-      smooth: true,
-    }),
-    material: earthMaterial,
-  });
-
-  
+  console.log("Engine initialized");  
   engine.addObject(obj1);
-  engine.addObject(obj2);
-  engine.addObject(sphere);
-  engine.addObject(earth);
-  engine.addObject(floor);
-  // engine.addObject(ball);
-  engine.addObject(texturedCube);
-  engine.addObject(textureLightCube);
-  // engine.addObject(duck);
-  // engine.addObject(skull);
-
-  engine.addObject(
-    new Object3D({
-      position: vec3(0, -2, -8),
-      rotation: vec3(90, 0, 0),
-      scale: vec3(3, 1, 3),
-      material: new Solid({
-        color: rgb(185, 185, 185),
-      }),
-      mesh: new Plain({
-        width: 10,
-        height: 10,
-        color: vec4(0.5, 0.5, 0.5, 1),
-      }),
-    })
-  );
-
-  engine.addObject(
-    new Object3D({
-      position: vec3(0, -2, +10),
-      rotation: vec3(-90, 0, 0),
-      scale: vec3(3, 1, 3),
-      material: new Solid({
-        color: rgb(185, 185, 185),
-      }),
-      mesh: new Plain({
-        width: 10,
-        height: 10,
-        color: vec4(0.5, 0.5, 0.5, 1),
-      }),
-    })
-  );
 
   // Configurar a luz com opção para mostrar o gizmo (representação visual)
   engine.light.position = lightPos;

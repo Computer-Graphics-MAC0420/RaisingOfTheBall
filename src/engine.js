@@ -42,7 +42,7 @@ class Engine {
    * @private
    * @type {number[]} - Background color in RGBA format [r, g, b, a]
    */
-  #background = [0.0, 0.0, 0.0, 1.0];
+  #background = [0.1, 0.7, 0.8, 1.0];
 
   /**
    * @private
@@ -132,6 +132,7 @@ class Engine {
 
     this.#ball.updatePosition(dt, this.#camera);
     this.#ball.updateRotation(dt, this.#camera);
+    this.checkCollisions();
     for (const obj of Object.values(this.#objects)) {
       obj.update(dt);
     }
@@ -616,6 +617,60 @@ class Engine {
    */
   getShader(name) {
     return this.#shaders[name];
+  }
+
+  checkCollisions() {
+    const ball = this.#ball;
+    if (!ball) return;
+
+    for (const obj of Object.values(this.#objects)) {
+      if (obj.collidable) {
+        const cube = obj;
+        const cubeMesh = cube.mesh;
+        if (!cubeMesh || !cubeMesh.size) continue;
+
+        const cubeSize = cubeMesh.size;
+        const cubePosition = cube.position;
+
+        const cubeMin = subtract(cubePosition, vec3(cubeSize / 2, cubeSize / 2, cubeSize / 2));
+        const cubeMax = add(cubePosition, vec3(cubeSize / 2, cubeSize / 2, cubeSize / 2));
+
+        const ballCenter = ball.center;
+        const ballRadius = ball.radius;
+
+        const closestPoint = vec3(
+          Math.max(cubeMin[0], Math.min(ballCenter[0], cubeMax[0])),
+          Math.max(cubeMin[1], Math.min(ballCenter[1], cubeMax[1])),
+          Math.max(cubeMin[2], Math.min(ballCenter[2], cubeMax[2]))
+        );
+
+        const distanceVec = subtract(ballCenter, closestPoint);
+        const distanceSq = dot(distanceVec, distanceVec);
+
+        if (distanceSq < (ballRadius * ballRadius)) {
+          const distance = Math.sqrt(distanceSq);
+          const penetration = ballRadius - distance;
+          const normal = normalize(distanceVec);
+
+          ball.center = add(ball.center, mult(penetration, normal));
+
+          let cameraBase = mat3();
+          cameraBase[0] = this.#camera.coordinateX;
+          cameraBase[1] = this.#camera.coordinateY;
+          cameraBase[2] = this.#camera.coordinateZ;
+          const worldVelocity = mult(cameraBase, ball.velocity.translation);
+
+          const dotProduct = dot(worldVelocity, normal);
+          const reflectionWorld = subtract(worldVelocity, mult(2 * dotProduct, normal));
+
+          const cameraBaseInverse = transpose(cameraBase);
+          const reflectionCamera = mult(cameraBaseInverse, reflectionWorld);
+
+          const BOUNCE_FACTOR = 0.6;
+          ball.velocity.translation = mult(BOUNCE_FACTOR, reflectionCamera);
+        }
+      }
+    }
   }
 }
 

@@ -48,6 +48,7 @@ class Cube extends Mesh {
       texCoords,
       useIndices: false,
     });
+    this.size = size;
   }
 }
 

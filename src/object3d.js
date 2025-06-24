@@ -16,11 +16,8 @@ class Object3D {
 
   /** @type {vec3} Velocidade de rotação (graus por segundo) */
   #rotationSpeed = vec3(0, 0, 0);
-
-  /** @type {Mesh|null} Mesh que define a geometria do objeto */
-  #mesh;
-
-  /** @type {Material|null} Material do objeto */
+  collidable = false;
+  #mesh = null;
   #material = null;
 
   /**
@@ -34,15 +31,16 @@ class Object3D {
    * @param {Material|null} [options.material=null] - Material do objeto
    */
   constructor({
-    position,
+    position = vec3(0, 0, 0),
     rotation,
     scale,
     transform = {},
     velocity = vec3(0, 0, 0),
     rotationSpeed = vec3(0, 0, 0),
     mesh = null,
-    shader = DEFAULT_SHADER,
     material = null,
+    shader = "default",
+    collidable = false,
   } = {}) {
     if (position || rotation || scale) {
       transform = { position, rotation, scale, ...transform };
@@ -62,6 +60,7 @@ class Object3D {
     else if (shader) {
       this.material = new Material({ shader });
     }
+    this.collidable = collidable;
   }
 
   /**
