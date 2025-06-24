@@ -83,7 +83,7 @@ class Ball3D extends Object3D {
             this.center[2] = this.radius;
             // Bounce if falling downwards
             if (this.velocity.translation[2] < 0) {
-                this.velocity.translation[2] = -this.velocity.translation[2] * BOUNCE_FACTOR; // small bounce
+                this.velocity.translation[2] = -this.velocity.translation[2] * BOUNCE_FACTOR; // bounce
                 // Stop very small bounces
                 if (Math.abs(this.velocity.translation[2]) < EPSILON) {
                     this.velocity.translation[2] = 0;

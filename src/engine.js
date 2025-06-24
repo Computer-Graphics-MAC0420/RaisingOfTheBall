@@ -181,23 +181,17 @@ class Engine {
           // Correct position
           ball.center = add(ball.center, mult(penetration, normal));
 
-          // Check if collision is on top of the object (normal pointing up)
-          if (normal[2] > 0.7) {
-            ball.onGround = true;
+          // Apply bouncing behavior for all collisions
+          let cameraBase = mat3();
+          cameraBase[0] = this.#camera.coordinateX;
+          cameraBase[1] = this.#camera.coordinateY;
+          cameraBase[2] = this.#camera.coordinateZ;
+          const worldVelocity = mult(cameraBase, ball.velocity.translation);
 
-            // If ball is falling onto the object, stop its downward velocity
-            if (ball.velocity.translation[2] < 0) {
-              ball.velocity.translation[2] = 0;
-            }
-          } else {
-            // It's a side or bottom collision, so bounce
-            let cameraBase = mat3();
-            cameraBase[0] = this.#camera.coordinateX;
-            cameraBase[1] = this.#camera.coordinateY;
-            cameraBase[2] = this.#camera.coordinateZ;
-            const worldVelocity = mult(cameraBase, ball.velocity.translation);
-
-            const dotProduct = dot(worldVelocity, normal);
+          const dotProduct = dot(worldVelocity, normal);
+          
+          // Only bounce if moving towards the surface
+          if (dotProduct < 0) {
             const reflectionWorld = subtract(
               worldVelocity,
               mult(2 * dotProduct, normal)
@@ -207,7 +201,25 @@ class Engine {
             const reflectionCamera = mult(cameraBaseInverse, reflectionWorld);
 
             const BOUNCE_FACTOR = 0.6;
+            const EPSILON = 0.001; // Small value to stop tiny bounces
+            
             ball.velocity.translation = mult(BOUNCE_FACTOR, reflectionCamera);
+            
+            // Stop very small bounces to prevent infinite bouncing
+            if (Math.abs(ball.velocity.translation[0]) < EPSILON) {
+              ball.velocity.translation[0] = 0;
+            }
+            if (Math.abs(ball.velocity.translation[1]) < EPSILON) {
+              ball.velocity.translation[1] = 0;
+            }
+            if (Math.abs(ball.velocity.translation[2]) < EPSILON) {
+              ball.velocity.translation[2] = 0;
+            }
+          }
+
+          // Check if collision is on top of the object (normal pointing up)
+          if (normal[2] > 0.7) {
+            ball.onGround = true;
           }
         }
       }
@@ -695,81 +707,6 @@ class Engine {
     return this.#shaders[name];
   }
 
-  checkCollisions() {
-    const ball = this.#ball;
-    if (!ball) return;
-
-    for (const obj of Object.values(this.#objects)) {
-      if (obj.collidable) {
-        const cube = obj;
-        const cubeMesh = cube.mesh;
-        if (!cubeMesh || !cubeMesh.size) continue;
-
-        const cubeBaseSize = cubeMesh.size;
-        const cubeScale = cube.scale;
-        const cubePosition = cube.position;
-
-        const halfSize = vec3(
-          (cubeBaseSize / 2) * cubeScale[0],
-          (cubeBaseSize / 2) * cubeScale[1],
-          (cubeBaseSize / 2) * cubeScale[2]
-        );
-
-        const cubeMin = subtract(cubePosition, halfSize);
-        const cubeMax = add(cubePosition, halfSize);
-
-        const ballCenter = ball.center;
-        const ballRadius = ball.radius;
-
-        const closestPoint = vec3(
-          Math.max(cubeMin[0], Math.min(ballCenter[0], cubeMax[0])),
-          Math.max(cubeMin[1], Math.min(ballCenter[1], cubeMax[1])),
-          Math.max(cubeMin[2], Math.min(ballCenter[2], cubeMax[2]))
-        );
-
-        const distanceVec = subtract(ballCenter, closestPoint);
-        const distanceSq = dot(distanceVec, distanceVec);
-
-        if (distanceSq < ballRadius * ballRadius) {
-          const distance = Math.sqrt(distanceSq);
-          const penetration = ballRadius - distance;
-          const normal = normalize(distanceVec);
-
-          // Correct position
-          ball.center = add(ball.center, mult(penetration, normal));
-
-          // Check if collision is on top of the object (normal pointing up)
-          if (normal[2] > 0.7) {
-            ball.onGround = true;
-
-            // If ball is falling onto the object, stop its downward velocity
-            if (ball.velocity.translation[2] < 0) {
-              ball.velocity.translation[2] = 0;
-            }
-          } else {
-            // It's a side or bottom collision, so bounce
-            let cameraBase = mat3();
-            cameraBase[0] = this.#camera.coordinateX;
-            cameraBase[1] = this.#camera.coordinateY;
-            cameraBase[2] = this.#camera.coordinateZ;
-            const worldVelocity = mult(cameraBase, ball.velocity.translation);
-
-            const dotProduct = dot(worldVelocity, normal);
-            const reflectionWorld = subtract(
-              worldVelocity,
-              mult(2 * dotProduct, normal)
-            );
-
-            const cameraBaseInverse = transpose(cameraBase);
-            const reflectionCamera = mult(cameraBaseInverse, reflectionWorld);
-
-            const BOUNCE_FACTOR = 0.6;
-            ball.velocity.translation = mult(BOUNCE_FACTOR, reflectionCamera);
-          }
-        }
-      }
-    }
-  }
 }
 
 export default Engine;

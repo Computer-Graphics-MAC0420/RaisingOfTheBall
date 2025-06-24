@@ -29,7 +29,7 @@ const defaultMaterial = new Solid({
 });
 
 const obj1 = new Object3D({
-  position: vec3(0, 0, 0),
+  position: vec3(0, 50, 20),
   rotation: vec3(0, 0, 0),
   scale: vec3(10, 10, 1),
   material: defaultMaterial,
@@ -63,9 +63,55 @@ const ball = new Ball3D(radius, {
   material: ballMaterial,
 });
 
+// Additional collidable objects for testing bouncing behavior
+const obj2 = new Object3D({
+  position: vec3(-80, 0, 10),
+  rotation: vec3(0, 0, 0),
+  scale: vec3(5, 5, 5),
+  material: new Solid({
+    color: rgb(83, 204, 83),
+  }),
+  mesh: new Cube({
+    size: 20,
+  }),
+  collidable: true,
+});
+
+const obj3 = new Object3D({
+  position: vec3(80, 40, 30),
+  rotation: vec3(0, 0, 0),
+  scale: vec3(8, 3, 2),
+  material: new Solid({
+    color: rgb(83, 83, 204),
+  }),
+  mesh: new Cube({
+    size: 20,
+  }),
+  collidable: true,
+});
+
+const obj4 = new Object3D({
+  position: vec3(0, -60, 40),
+  rotation: vec3(0, 0, 0),
+  scale: vec3(4, 4, 6),
+  material: new Solid({
+    color: rgb(200, 120, 50),
+  }),
+  mesh: new Cube({
+    size: 20,
+  }),
+  collidable: true,
+});
+
 engine.init(ball).then(() => {
   console.log("Engine initialized");  
   engine.addObject(obj1);
+  engine.addObject(obj2);
+  engine.addObject(obj3);
+  engine.addObject(obj4);
+  engine.addObject(obj2);
+  engine.addObject(obj3);
+  engine.addObject(obj4);
 
   // Configurar a luz com opção para mostrar o gizmo (representação visual)
   engine.light.position = lightPos;
