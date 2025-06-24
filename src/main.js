@@ -263,11 +263,7 @@ function handleMovement(dt) {
     engine.ball.moveRight();
   }
   if (isKeyPressed(" ")) {
-    console.log(engine.ball.onGround);
     engine.ball.Jump();
-    console.log(engine.ball.onGround);
-    console.log(engine.ball.velocity.translation);
-    console.log(engine.ball.center);
   }
 
   // Controles da fonte de luz
