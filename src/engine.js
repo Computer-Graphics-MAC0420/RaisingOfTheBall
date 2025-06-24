@@ -148,17 +148,18 @@ class Engine {
         const cubeMesh = cube.mesh;
         if (!cubeMesh || !cubeMesh.size) continue;
 
-        const cubeSize = cubeMesh.size;
+        const cubeBaseSize = cubeMesh.size;
+        const cubeScale = cube.scale;
         const cubePosition = cube.position;
 
-        const cubeMin = subtract(
-          cubePosition,
-          vec3(cubeSize / 2, cubeSize / 2, cubeSize / 2)
+        const halfSize = vec3(
+          (cubeBaseSize / 2) * cubeScale[0],
+          (cubeBaseSize / 2) * cubeScale[1],
+          (cubeBaseSize / 2) * cubeScale[2]
         );
-        const cubeMax = add(
-          cubePosition,
-          vec3(cubeSize / 2, cubeSize / 2, cubeSize / 2)
-        );
+
+        const cubeMin = subtract(cubePosition, halfSize);
+        const cubeMax = add(cubePosition, halfSize);
 
         const ballCenter = ball.center;
         const ballRadius = ball.radius;
@@ -704,17 +705,18 @@ class Engine {
         const cubeMesh = cube.mesh;
         if (!cubeMesh || !cubeMesh.size) continue;
 
-        const cubeSize = cubeMesh.size;
+        const cubeBaseSize = cubeMesh.size;
+        const cubeScale = cube.scale;
         const cubePosition = cube.position;
 
-        const cubeMin = subtract(
-          cubePosition,
-          vec3(cubeSize / 2, cubeSize / 2, cubeSize / 2)
+        const halfSize = vec3(
+          (cubeBaseSize / 2) * cubeScale[0],
+          (cubeBaseSize / 2) * cubeScale[1],
+          (cubeBaseSize / 2) * cubeScale[2]
         );
-        const cubeMax = add(
-          cubePosition,
-          vec3(cubeSize / 2, cubeSize / 2, cubeSize / 2)
-        );
+
+        const cubeMin = subtract(cubePosition, halfSize);
+        const cubeMax = add(cubePosition, halfSize);
 
         const ballCenter = ball.center;
         const ballRadius = ball.radius;

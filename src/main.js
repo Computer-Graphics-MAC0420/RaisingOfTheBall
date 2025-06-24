@@ -30,6 +30,8 @@ const defaultMaterial = new Solid({
 
 const obj1 = new Object3D({
   position: vec3(0, 0, 0),
+  rotation: vec3(0, 0, 0),
+  scale: vec3(10, 10, 1),
   material: defaultMaterial,
   mesh: new Cube({
     size: 20,
@@ -48,7 +50,7 @@ const ballMaterial = new Material({
 });
 const radius = 20; // Raio da esfera
 const ball = new Ball3D(radius, {
-  position: vec3(-4, 0, 6),
+  position: vec3(-4, 0, 60),
   rotationSpeed: vec3(0, 0, 0),
   // material: new Solid({
   //   color: rgb(255, 0, 0),
