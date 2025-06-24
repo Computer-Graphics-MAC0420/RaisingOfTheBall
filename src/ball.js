@@ -6,8 +6,7 @@ const FATOR_DE_CONVERSAO = 0.000005;
 const BALL_VELOCITY = 0.05;
 const GRAVITY = -9.81 * FATOR_DE_CONVERSAO; // Gravity acceleration (increased for faster jump arc)
 const FRICTION = 0.98; // Friction coefficient for the ball
-const BOUNCE_FACTOR = 0.8 * 0.5 * FATOR_DE_CONVERSAO; // Bounce factor for the ball
-const MAX_SPEED = 100 * FATOR_DE_CONVERSAO; // Maximum speed of the ball
+const BOUNCE_FACTOR = 0.8 * 0.5; // Bounce factor for the ball
 const JUMP_FORCE = 0.05; // Force applied when jumping
 const MOVE_ON_AIR_FACTOR = 0.3 * FATOR_DE_CONVERSAO; // Factor to reduce speed when moving in the air
 
@@ -41,7 +40,6 @@ class Ball3D extends Object3D {
         this.gravity = vec3(0, 0, GRAVITY); // Vetor de gravidade (para baixo no eixo Z)
         this.friction = FRICTION;
         this.elasticity = BOUNCE_FACTOR; // Elasticidade para o salto
-        this.maxSpeed = MAX_SPEED;
         this.angularVelocity = vec3(0, 0, 0); // Para rotação/rolagem
     }
     get modelTrans() {
@@ -76,14 +74,14 @@ class Ball3D extends Object3D {
         // GROUND
         if (this.center[2] - this.radius < 0) {
             this.center[2] = this.radius;
-            // // Bounce if falling downwards
-            // if (this.velocity.translation[2] < 0) {
-            //     this.velocity.translation[2] = -this.velocity.translation[2] * this.elasticity; // small bounce
-            //     // Stop very small bounces
-            //     if (Math.abs(this.velocity.translation[2]) < 1) {
-            //         this.velocity.translation[2] = 0;
-            //     }
-            // }
+            // Bounce if falling downwards
+            if (this.velocity.translation[2] < 0) {
+                this.velocity.translation[2] = -this.velocity.translation[2] * this.elasticity; // small bounce
+                // Stop very small bounces
+                if (Math.abs(this.velocity.translation[2]) < 1) {
+                    this.velocity.translation[2] = 0;
+                }
+            }
             this.onGround = true;
         } else {
             this.onGround = false;
@@ -112,25 +110,26 @@ class Ball3D extends Object3D {
 
         if (speed > 0.0001) { // A slightly larger threshold to avoid micro-rotations
             // The axis of rotation is perpendicular to the velocity and the ground (z axis)
-            let axis = vec3(-vel[1], vel[0], 0); // perpendicular in XY plane
+            // Invert the axis to roll in the opposite direction
+            let axis = vec3(vel[1], -vel[0], 0); // opposite direction in XY plane
             
             // Normalize axis
             const axisLen = Math.sqrt(axis[0]*axis[0] + axis[1]*axis[1]);
             if (axisLen > 0.0001) {
-                axis = vec3(axis[0]/axisLen, axis[1]/axisLen, 0);
-                
-                // The angle to rotate is distance/radius
-                const distance = speed * delta;
-                
-                // Calculate angular velocity (radians per frame), reduced by ROLL_FACTOR
-                const angularSpeed = (distance / this.radius) * ROLL_FACTOR;
+            axis = vec3(axis[0]/axisLen, axis[1]/axisLen, 0);
+            
+            // The angle to rotate is distance/radius
+            const distance = speed * delta;
+            
+            // Calculate angular velocity (radians per frame), reduced by ROLL_FACTOR
+            const angularSpeed = (distance / this.radius) * ROLL_FACTOR;
 
-                // Set the angular velocity directly based on the current speed, don't accumulate
-                this.angularVelocity = vec3(
-                    axis[0] * angularSpeed,
-                    axis[1] * angularSpeed,
-                    0 // Assuming rolling on a flat surface
-                );
+            // Set the angular velocity directly based on the current speed, don't accumulate
+            this.angularVelocity = vec3(
+                axis[0] * angularSpeed,
+                axis[1] * angularSpeed,
+                0 // Assuming rolling on a flat surface
+            );
             }
         } else {
             // If the ball is not moving, apply friction to the existing angular velocity
