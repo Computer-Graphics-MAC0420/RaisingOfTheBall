@@ -104,9 +104,9 @@ const obj4 = new Object3D({
 });
 
 const obj5 = new Object3D({
-  position: vec3(0, -400, 40),
+  position: vec3(0, -700, 40),
   rotation: vec3(0, 0, 0),
-  scale: vec3(4, 4, 6),
+  scale: vec3(4, 40, 6),
   material: new Solid({
     color: rgb(200, 120, 50),
   }),
@@ -117,7 +117,7 @@ const obj5 = new Object3D({
 });
 
 const windmillBlade1 = new Object3D({
-  position: vec3(0, -200, 250), // At the top of the tower
+  position: vec3(0, -500, 250), // At the top of the tower
   rotation: vec3(0, 45, 0), // Diagonal blade rotating around Y-axis
   scale: vec3(10, 1, 1), // Long and thin blade (adjusted for proper orientation)
   material: new Solid({
@@ -130,7 +130,7 @@ const windmillBlade1 = new Object3D({
 });
 
 const windmillBlade2 = new Object3D({
-  position: vec3(0, -200, 250), // Same position as blade1
+  position: vec3(0, -500, 250), // Same position as blade1
   rotation: vec3(0, -45, 0), // Perpendicular to blade1, rotating around Y-axis
   scale: vec3(10, 1, 1), // Long and thin blade (adjusted for proper orientation)
   material: new Solid({
@@ -190,7 +190,7 @@ function handleMovement(dt) {
   // engine.ball;
 
   // Animate windmill blades rotation
-  const rotationSpeed = 0.1; // Adjust speed as needed
+  const rotationSpeed = 0.2; // Adjust speed as needed
   windmillBlade1.rotation[1] += rotationSpeed * dt;
   windmillBlade2.rotation[1] += rotationSpeed * dt;
 
