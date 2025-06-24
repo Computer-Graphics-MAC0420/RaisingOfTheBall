@@ -142,6 +142,9 @@ class Engine {
     const ball = this.#ball;
     if (!ball) return;
 
+    // Reset onGround state - it will be set to true if a ground collision is detected
+    ball.onGround = false;
+
     for (const obj of Object.values(this.#objects)) {
       if (obj.collidable) {
         const cube = obj;

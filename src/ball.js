@@ -25,6 +25,7 @@ class Ball3D extends Object3D {
         
         // Propriedades de movimento
         this.center = options.position || vec3(0, 0, 0);
+        this.initialPosition = vec3(this.center[0], this.center[1], this.center[2]); // Store initial position for reset
         this.theta = vec3(0, 0, 0);
         this.velocity = {
             rotation: vec3(0, 0, 0), 
@@ -78,20 +79,9 @@ class Ball3D extends Object3D {
         const vel = mult(cameraBase, this.velocity.translation);
         this.center = add(this.center, mult(delta, vel));
         
-        // GROUND
-        if (this.center[2] - this.radius < 0) {
-            this.center[2] = this.radius;
-            // Bounce if falling downwards
-            if (this.velocity.translation[2] < 0) {
-                this.velocity.translation[2] = -this.velocity.translation[2] * BOUNCE_FACTOR; // bounce
-                // Stop very small bounces
-                if (Math.abs(this.velocity.translation[2]) < EPSILON) {
-                    this.velocity.translation[2] = 0;
-                }
-            }
-            this.onGround = true;
-        } else {
-            this.onGround = false;
+        // Reset ball if it falls into the void
+        if (this.center[2] < -500) {
+            this.resetToInitialPosition();
         }
 
         // TODO: implement collision detection and response
@@ -193,6 +183,21 @@ class Ball3D extends Object3D {
         // Only jump if on the ground
         this.velocity.translation[2] = JUMP_FORCE;
         this.onGround = false; // Set onGround to false to allow for next jump
+    }
+    
+    resetToInitialPosition() {
+        // Reset ball to its initial position
+        this.center = vec3(this.initialPosition[0], this.initialPosition[1], this.initialPosition[2]);
+        // Reset all velocities and physics properties
+        this.velocity.translation = vec3(0, 0, 0);
+        this.velocity.rotation = vec3(0, 0, 0);
+        this.acceleration = vec3(0, 0, 0);
+        this.angularVelocity = vec3(0, 0, 0);
+        this.onGround = false;
+        this.jumpResquested = false;
+        // Reset orientation matrix
+        this.modelOri = mat4();
+        console.log("Ball reset to initial position:", this.center);
     }
 }
 
