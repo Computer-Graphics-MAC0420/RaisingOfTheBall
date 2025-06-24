@@ -105,25 +105,68 @@ class Ball3D extends Object3D {
         cameraBase[2] = camera.coordinateZ;
         const vel = mult(cameraBase, this.velocity.translation);
 
-        // Compute speed and direction
-        const speed = Math.sqrt(vel[0]*vel[0] + vel[1]*vel[1] + vel[2]*vel[2]);
-        if (speed > 0.00001) {
+        const speed = Math.sqrt(vel[0]*vel[0] + vel[1]*vel[1]); // Only consider horizontal speed for rolling
+
+        const ANGULAR_FRICTION = 0.98; // Slightly increased friction for a more gradual stop
+        const ROLL_FACTOR = 0.3; // Reduce this to make the ball roll less
+
+        if (speed > 0.0001) { // A slightly larger threshold to avoid micro-rotations
             // The axis of rotation is perpendicular to the velocity and the ground (z axis)
             let axis = vec3(-vel[1], vel[0], 0); // perpendicular in XY plane
+            
             // Normalize axis
-            const axisLen = Math.sqrt(axis[0]*axis[0] + axis[1]*axis[1] + axis[2]*axis[2]);
+            const axisLen = Math.sqrt(axis[0]*axis[0] + axis[1]*axis[1]);
             if (axisLen > 0.0001) {
-                axis = vec3(axis[0]/axisLen, axis[1]/axisLen, axis[2]/axisLen);
+                axis = vec3(axis[0]/axisLen, axis[1]/axisLen, 0);
+                
                 // The angle to rotate is distance/radius
                 const distance = speed * delta;
-                const angle = distance / this.radius * 180 / Math.PI; // degrees
-                // Accumulate orientation: rotate by 'angle' around 'axis' in local coordinates
-                this.modelOri = mult(rotate(angle, axis), this.modelOri);
+                
+                // Calculate angular velocity (radians per frame), reduced by ROLL_FACTOR
+                const angularSpeed = (distance / this.radius) * ROLL_FACTOR;
+
+                // Set the angular velocity directly based on the current speed, don't accumulate
+                this.angularVelocity = vec3(
+                    axis[0] * angularSpeed,
+                    axis[1] * angularSpeed,
+                    0 // Assuming rolling on a flat surface
+                );
             }
+        } else {
+            // If the ball is not moving, apply friction to the existing angular velocity
+            this.angularVelocity = vec3(
+                this.angularVelocity[0] * ANGULAR_FRICTION,
+                this.angularVelocity[1] * ANGULAR_FRICTION,
+                this.angularVelocity[2] * ANGULAR_FRICTION
+            );
         }
+
+        // Stop completely if very slow to prevent indefinite small rotations
+        if (Math.sqrt(this.angularVelocity[0]**2 + this.angularVelocity[1]**2 + this.angularVelocity[2]**2) < 0.0001) {
+            this.angularVelocity = vec3(0, 0, 0);
+        }
+
+        // Apply angular velocity to orientation
+        const angVelLen = Math.sqrt(
+            this.angularVelocity[0]*this.angularVelocity[0] +
+            this.angularVelocity[1]*this.angularVelocity[1] +
+            this.angularVelocity[2]*this.angularVelocity[2]
+        );
+
+        if (angVelLen > 0) {
+            // Convert to degrees for rotate()
+            const angle = angVelLen * 180 / Math.PI;
+            const axis = vec3(
+                this.angularVelocity[0]/angVelLen,
+                this.angularVelocity[1]/angVelLen,
+                this.angularVelocity[2]/angVelLen
+            );
+            this.modelOri = mult(rotate(angle, axis), this.modelOri);
+        }
+        
         this._modelRot = this.modelOri;
         return this.modelOri;
-    }
+}
     moveForward() {
         if (this.onGround) {
             this.velocity.translation[1] = BALL_VELOCITY; // Move up

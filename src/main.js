@@ -60,8 +60,8 @@ const sphere = new Object3D({
 });
 
 const floor = new Object3D({
-  position: vec3(0, -200, 0),
-  scale: vec3(100, 100, 100),
+  position: vec3(0, -2000, 0),
+  scale: vec3(200, 200, 200),
   material: new Solid({
     color: rgb(185, 185, 185),
   }),
