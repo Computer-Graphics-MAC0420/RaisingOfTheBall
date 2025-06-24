@@ -1,5 +1,6 @@
 import Engine from "./engine.js";
 import Object3D from "./object3d.js";
+import Ball3D from "./ball.js";
 
 import { Cube, Plain, Sphere, SphereUV } from "./meshes/index.js";
 import { isKeyPressed } from "./keyboard.js";
@@ -13,38 +14,15 @@ import { rgb } from "./colors.js";
 // import duckObj from "./assets/objects/rubber_duck/rubber-duck.obj?raw";
 // import skullObj from "./assets/12140_Skull_v3_L2.obj?raw";
 
+const canvas = document.getElementById("canvas");
 const engine = new Engine();
 const CAMERA_SPEED = 0.005;
 const CAMERA_ROTATION_SPEED = 0.04; // Velocidade de rotação da câmera
 
 const LIGHT_SPEED = 0.005; // Velocidade de movimento da luz
-const lightPos = vec3(0, 3, 5);
+const lightPos = vec3(0, 0, 500);
 const lightColor = rgb(255, 255, 255);
 
-let hAngle = 0;
-let vAngle = 0;
-
-/**
- * Faz a câmera olhar para um ponto específico no espaço 3D
- * @param {Object} camera - Objeto da câmera
- * @param {Array|Object3D} target - Ponto alvo ou objeto 3D para onde a câmera deve olhar
- */
-function lookAtPoint(camera, target) {
-  const targetPosition = target.position ? target.position : target;
-
-  const cameraPos = camera.position;
-  const direction = subtract(targetPosition, cameraPos);
-
-  const x = direction[0];
-  const y = direction[1];
-  const z = direction[2];
-
-  hAngle = Math.atan2(z, x);
-  const horizontalDistance = Math.sqrt(x * x + z * z);
-  vAngle = Math.atan2(y, horizontalDistance);
-
-  camera.lookTo(hAngle, vAngle);
-}
 
 const defaultMaterial = new Solid({
   color: rgb(204, 83, 83),
@@ -55,7 +33,7 @@ const obj1 = new Object3D({
   rotationSpeed: vec3(0.1, 0.03, 0.01),
   material: defaultMaterial,
   mesh: new Cube({
-    size: 1.5,
+    size: 15,
   }),
 });
 
@@ -64,7 +42,7 @@ const obj2 = new Object3D({
   rotationSpeed: vec3(0, 0.01, 0.1),
   material: defaultMaterial,
   mesh: new Cube({
-    size: 0.5,
+    size: 15,
   }),
 });
 
@@ -77,18 +55,19 @@ const sphere = new Object3D({
   mesh: new Sphere({
     density: 6,
     smooth: true,
+    size: 7
   }),
 });
 
 const floor = new Object3D({
-  position: vec3(0, -2, 0),
-  scale: vec3(10, 1, 10),
+  position: vec3(0, -200, 0),
+  scale: vec3(100, 100, 100),
   material: new Solid({
     color: rgb(185, 185, 185),
   }),
   mesh: new Plain({
-    width: 10,
-    height: 10,
+    width: 100,
+    height: 100,
     color: vec4(0.5, 0.5, 0.5, 1),
   }),
 });
@@ -112,12 +91,36 @@ const floor = new Object3D({
 //   scale: vec3(0.02, 0.02, 0.02),
 //   rotationSpeed: vec3(0, 0.01, 0),
 //   material: new Solid({
-//     color: rgb(229, 235, 183),
-//   }),
-//   mesh: skullMesh,
-// });
+  //     color: rgb(229, 235, 183),
+  //   }),
+  //   mesh: skullMesh,
+  // });
 
-engine.init().then(() => {
+const ballTexture = new Texture(engine.gl, "./src/assets/pixar.png", {
+  filter: "LINEAR",
+  mipmap: true,
+});
+const ballMaterial = new Material({
+  shader: "textured",
+  texture: ballTexture,
+  specularFactor: 0.2,
+});
+const ball = new Ball3D(1, {
+  position: vec3(-4, 0, 6),
+  rotationSpeed: vec3(0, 0, 0),
+  // material: new Solid({
+  //   color: rgb(255, 0, 0),
+  // }),
+  mesh: new SphereUV({
+    size: 20,
+    segments: 32,
+    rings: 16,
+    smooth: true,
+  }),
+  material: ballMaterial,
+});
+
+engine.init(ball).then(() => {
   console.log("Engine initialized");
 
   // Load the textures
@@ -129,6 +132,7 @@ engine.init().then(() => {
   const dirtTexture = new Texture(engine.gl, "./src/assets/dirt.png", {
     filter: "NEAREST",
   });
+
 
   // Criar materiais para os objetos
   const dirtMaterial = new Material({
@@ -142,6 +146,7 @@ engine.init().then(() => {
     texture: earthTexture,
     specularFactor: 0.2,
   });
+
 
   const texturedCube = new Object3D({
     position: vec3(-3, 3, 1.0),
@@ -173,11 +178,13 @@ engine.init().then(() => {
     material: earthMaterial,
   });
 
+  
   engine.addObject(obj1);
   engine.addObject(obj2);
   engine.addObject(sphere);
   engine.addObject(earth);
   engine.addObject(floor);
+  // engine.addObject(ball);
   engine.addObject(texturedCube);
   engine.addObject(textureLightCube);
   // engine.addObject(duck);
@@ -215,53 +222,20 @@ engine.init().then(() => {
     })
   );
 
-  engine.camera.position = vec3(-5, 3, 3);
-  lookAtPoint(engine.camera, obj1);
-
   // Configurar a luz com opção para mostrar o gizmo (representação visual)
   engine.light.position = lightPos;
   engine.light.color = lightColor;
 
+  canvas.addEventListener("click", lockPointer);
+  document.addEventListener("keydown", disableLockPointer);
+  document.addEventListener("pointerlockchange", pointerLockChange);
+  document.addEventListener("mozpointerlockchange", pointerLockChange);
+  document.addEventListener("mousemove", onPointerMove);
+
   window.addEventListener("keydown", (event) => {
-    if (event.key === " ") {
-      console.log("Camera: ", engine.camera.position, engine.camera.lookingAt);
-    }
-
-    // Focar diferentes objetos com teclas numéricas
-    if (event.key === "1") {
-      console.log("Olhando para o cubo vermelho (obj1)");
-      lookAtPoint(engine.camera, obj1);
-    }
-    if (event.key === "2") {
-      console.log("Olhando para o cubo pequeno (obj2)");
-      lookAtPoint(engine.camera, obj2);
-    }
-    if (event.key === "3") {
-      console.log("Olhando para a esfera azul");
-      lookAtPoint(engine.camera, sphere);
-    }
-    if (event.key === "4") {
-      console.log("Olhando para a Terra");
-      lookAtPoint(engine.camera, earth);
-    }
-    if (event.key === "5") {
-      console.log("Olhando para o cubo com textura");
-      lookAtPoint(engine.camera, texturedCube);
-    }
-    if (event.key === "0") {
-      console.log("Olhando para a origem");
-      lookAtPoint(engine.camera, vec3(0, 0, 0));
-    }
-
     // Tecla L para mostrar a posição atual da luz
     if (event.key === "p") {
       console.log("Posição da luz:", engine.light.position);
-    }
-
-    // Tecla 6 para olhar para a luz
-    if (event.key === "6") {
-      console.log("Olhando para a fonte de luz");
-      lookAtPoint(engine.camera, engine.light);
     }
   });
 
@@ -273,39 +247,28 @@ engine.init().then(() => {
 });
 
 function handleMovement(dt) {
-  const camera = engine.camera;
+  // engine.ball;
 
+  // Controles da bola
   if (isKeyPressed("w")) {
-    camera.moveForward(CAMERA_SPEED * dt);
+    engine.ball.moveForward();
   }
   if (isKeyPressed("s")) {
-    camera.moveBackward(CAMERA_SPEED * dt);
+    engine.ball.moveBackward();
   }
   if (isKeyPressed("a")) {
-    camera.moveLeft(CAMERA_SPEED * dt);
+    engine.ball.moveLeft();
   }
   if (isKeyPressed("d")) {
-    camera.moveRight(CAMERA_SPEED * dt);
+    engine.ball.moveRight();
   }
   if (isKeyPressed(" ")) {
-    camera.moveUp(CAMERA_SPEED * dt);
+    console.log(engine.ball.onGround);
+    engine.ball.Jump();
+    console.log(engine.ball.onGround);
+    console.log(engine.ball.velocity.translation);
+    console.log(engine.ball.center);
   }
-  if (isKeyPressed("Shift")) {
-    camera.moveDown(CAMERA_SPEED * dt);
-  }
-  if (isKeyPressed("ArrowUp")) {
-    vAngle += CAMERA_ROTATION_SPEED;
-  }
-  if (isKeyPressed("ArrowDown")) {
-    vAngle -= CAMERA_ROTATION_SPEED;
-  }
-  if (isKeyPressed("ArrowLeft")) {
-    hAngle -= CAMERA_ROTATION_SPEED;
-  }
-  if (isKeyPressed("ArrowRight")) {
-    hAngle += CAMERA_ROTATION_SPEED;
-  }
-  camera.lookTo(hAngle, vAngle);
 
   // Controles da fonte de luz
   // Teclas I, J, K, L para mover no plano XZ
@@ -333,3 +296,26 @@ function handleMovement(dt) {
 window.addEventListener("resize", () => {
   engine.resize(window.innerWidth, window.innerHeight);
 });
+
+// Callbacks
+var isPointerLocked = false;
+function lockPointer() {
+  if (!isPointerLocked) {
+    canvas.requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock;
+    canvas.requestPointerLock();
+    canvas.focus();
+  }
+}
+function disableLockPointer(event) {
+  if (event.key === "Escape") {
+    document.exitPointerLock();
+  }
+}
+function pointerLockChange() {
+  isPointerLocked = document.pointerLockElement === canvas || document.mozPointerLockElement === canvas;
+}
+function onPointerMove(event) {
+  if (!isPointerLocked) return;
+  const camera = engine.camera;
+  camera.rotateCamera(event.movementX * CAMERA_ROTATION_SPEED, event.movementY * CAMERA_ROTATION_SPEED);
+}

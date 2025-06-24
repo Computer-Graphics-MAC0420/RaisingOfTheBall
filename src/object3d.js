@@ -233,6 +233,17 @@ class Object3D {
   getModelMatrix() {
     return this.#transform.getModelMatrix();
   }
+
+  /**
+   * Calcula a matriz de modelo com base em matrizes de transformação específicas
+   * @param {mat4} translationMatrix - Matriz de translação
+   * @param {mat4} rotationMatrix - Matriz de rotação
+   * @param {vec3} scale - Fator de escala
+   * @returns {mat4} Matriz de modelo resultante
+   */
+  getModelMatrixGivenMatrix(translationMatrix, rotationMatrix, scale) {
+    return this.#transform.getModelMatrixGivenMatrix(translationMatrix, rotationMatrix, scale);
+  }
 }
 
 export default Object3D;

@@ -1,9 +1,11 @@
 import Object3D from "./object3d.js";
+import Ball3D from "./ball.js";
 import Shader from "./shader.js";
 import AvailableShaders from "./shaders/index.js";
 import Camera from "./camera.js";
 import Light from "./light.js";
 import Texture from "./texture.js";
+import { fromObjectFile } from "./utils.js";
 
 class Engine {
   /**
@@ -17,6 +19,12 @@ class Engine {
    * @type {Object.<number, Object3D>} - Dictionary of objects in the scene, indexed by unique IDs
    */
   #objects = {};
+
+  /**
+   * @private
+   * @type {Object}
+   */
+  #ball = null;
 
   /**
    * @private
@@ -80,6 +88,10 @@ class Engine {
 
   #lastTimeFPS;
 
+  get ball() {
+    return this.#ball;
+  }
+
   get camera() {
     return this.#camera;
   }
@@ -118,6 +130,8 @@ class Engine {
       this.onUpdate(dt);
     }
 
+    this.#ball.updatePosition(dt, this.#camera);
+    this.#ball.updateRotation(dt, this.#camera);
     for (const obj of Object.values(this.#objects)) {
       obj.update(dt);
     }
@@ -168,6 +182,7 @@ class Engine {
     );
 
     // Renderiza todos os objetos para o shadow map (sem o próprio gizmo da luz)
+    this._renderObjectToShadowMap(this.#ball, true);
     for (const obj of Object.values(this.#objects)) {
       this._renderObjectToShadowMap(obj);
     }
@@ -184,10 +199,18 @@ class Engine {
    * @private
    * @param {Object3D} obj - Objeto a ser renderizado
    */
-  _renderObjectToShadowMap(obj) {
+  _renderObjectToShadowMap(obj, fromMatrix = false) {
     if (!obj.mesh) return;
 
-    const model = obj.getModelMatrix();
+    let model = mat4();
+    if (fromMatrix) {
+      const trans = obj.modelTrans;
+      const rot = obj.modelRot;
+      const scale = obj.modelScale;
+      model = obj.getModelMatrixGivenMatrix(trans, rot, scale);
+    } else {
+      model = obj.getModelMatrix();
+    }
     this.#activeShader.setUniformMatrix4fv("uModel", false, flatten(model));
 
     // Renderiza apenas usando os vértices (não precisamos de cores, normais, etc.)
@@ -255,6 +278,7 @@ class Engine {
         );
       }
 
+      this.renderObject(this.#ball, true);
       for (const obj of objects) {
         this.renderObject(obj);
       }
@@ -287,10 +311,11 @@ class Engine {
     this.camera.setResolution(width, height);
   }
 
-  async init() {
+  async init(ball) {
     const gl = this.gl;
 
-    this.#camera = new Camera();
+    this.#ball = ball;
+    this.#camera = new Camera({ball: ball});
     this.#light = new Light({
       showGizmo: true, //! Remove this if you don't want to show the light gizmo
     });
@@ -475,7 +500,7 @@ class Engine {
     }
   }
 
-  renderObject(obj) {
+  renderObject(obj, fromMatrix = false) {
     const gl = this.gl;
     if (!(obj instanceof Object3D)) {
       throw new Error("obj must be an instance of Object3D");
@@ -503,7 +528,15 @@ class Engine {
       obj.material.apply(this.gl, this.#activeShader);
     }
 
-    const model = obj.getModelMatrix();
+    let model = mat4();
+    if (fromMatrix) {
+      const trans = obj.modelTrans;
+      const rot = obj.modelRot;
+      const scale = obj.modelScale;
+      model = obj.getModelMatrixGivenMatrix(trans, rot, scale);
+    } else {
+      model = obj.getModelMatrix();
+    }
     this.#activeShader.setUniformMatrix4fv("uModel", false, flatten(model));
 
     if (obj.mesh.useIndices) {

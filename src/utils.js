@@ -28,6 +28,15 @@ export function getModelMatrix(translation, rotation, scale) {
   return model;
 }
 
+export function getModelMatrixGivenMatrix(translationMatrix, rotationMatrix, scale) {
+  let model = mat4();
+  model = mult(model, translationMatrix);
+  model = mult(model, rotationMatrix);
+  model = mult(model, scale);
+  
+  return model;
+}
+
 export function square(a, b, c, d) {
   return [a, b, c, a, c, d];
 }

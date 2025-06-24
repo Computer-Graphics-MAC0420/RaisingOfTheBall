@@ -1,4 +1,4 @@
-import { getModelMatrix } from "./utils.js";
+import { getModelMatrix, getModelMatrixGivenMatrix } from "./utils.js";
 
 /**
  * Classe responsável por gerenciar transformações 3D
@@ -103,6 +103,17 @@ class Transform {
    */
   getModelMatrix() {
     return getModelMatrix(this.#position, this.#rotation, this.#scale);
+  }
+
+  /**
+   * Calcula a matriz de modelo com base em matrizes de transformação específicas
+   * @param {mat4} translationMatrix - Matriz de translação
+   * @param {mat4} rotationMatrix - Matriz de rotação
+   * @param {vec3} scale - Fator de escala
+   * @returns {mat4} Matriz de modelo resultante
+   */
+  getModelMatrixGivenMatrix(translationMatrix, rotationMatrix, scale) {
+    return getModelMatrixGivenMatrix(translationMatrix, rotationMatrix, scale);
   }
 
   /**
