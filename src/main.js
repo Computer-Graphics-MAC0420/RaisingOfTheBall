@@ -37,15 +37,6 @@ const obj1 = new Object3D({
   }),
   collidable: true,
 });
-const box = new Object3D({
-  position: vec3(0, 0, 50),
-  mesh: new Cube({
-    size: 10,
-  }),
-  material: new Solid({
-    color: rgb(94, 255, 0),
-  }),
-});
 
 const ballTexture = new Texture(engine.gl, "./src/assets/pixar.png", {
   filter: "LINEAR",
@@ -182,7 +173,6 @@ engine.init(ball).then(() => {
   engine.addObject(windmillBlade1);
   engine.addObject(windmillBlade2);
   engine.addObject(movingPlatform);
-  engine.addObject(box);
 
   // Configurar a luz com opção para mostrar o gizmo (representação visual)
   engine.light.position = lightPos;
@@ -281,7 +271,6 @@ function handleMovement(dt) {
   if (isKeyPressed("o")) {
     engine.light.position[2] -= LIGHT_SPEED * dt; // Mover para baixo (Y-)
   }
-  console.log("Posição da luz:", engine.light.position);
 }
 
 window.addEventListener("resize", () => {
@@ -309,7 +298,6 @@ function pointerLockChange() {
     document.mozPointerLockElement === canvas;
 }
 function onPointerMove(event) {
-  console.log("Pointer moved:", event.movementX, event.movementY);
   if (!isPointerLocked) return;
   const camera = engine.camera;
   camera.rotateCamera(
