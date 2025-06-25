@@ -57,6 +57,17 @@ const legoMaterial = new Material({
   texture: legoTexture,
   specularFactor: 0.3,
 });
+
+const abcTexture = new Texture(engine.gl, "./src/assets/abc.png", {
+  filter: "LINEAR",
+  mipmap: true,
+});
+const abcMaterial = new Material({
+  shader: "textured",
+  texture: abcTexture,
+  specularFactor: 0.2,
+});
+
 const radius = 20; // Raio da esfera
 const ball = new Ball3D(radius, {
   position: vec3(-4, 0, 100), // Start higher up to test falling
@@ -171,6 +182,50 @@ const platformMovement = {
   centerX: 0, // Center position
 };
 
+const abcBlock1 = new Object3D({
+  position: vec3(-200, -1000, 50),
+  rotation: vec3(0, 180, 0),
+  scale: vec3(1, 1, 1),
+  material: abcMaterial,
+  mesh: new Cube({
+    size: 100,
+  }),
+  collidable: true,
+});
+
+const abcBlock2 = new Object3D({
+  position: vec3(-400, -1000, 100),
+  rotation: vec3(0, 0, 0),
+  scale: vec3(1, 1, 1),
+  material: abcMaterial,
+  mesh: new Cube({
+    size: 100,
+  }),
+  collidable: true,
+});
+
+const abcBlock3 = new Object3D({
+  position: vec3(-600, -1000, 150),
+  rotation: vec3(0, 0, 90),
+  scale: vec3(1, 1, 1),
+  material: abcMaterial,
+  mesh: new Cube({
+    size: 100,
+  }),
+  collidable: true,
+});
+
+const abcBlock4 = new Object3D({
+  position: vec3(-800, -1000, 200),
+  rotation: vec3(0, 0, 180),
+  scale: vec3(1, 1, 1),
+  material: abcMaterial,
+  mesh: new Cube({
+    size: 100,
+  }),
+  collidable: true,
+});
+
 engine.init(ball).then(() => {
   console.log("Engine initialized");
   engine.addObject(obj1);
@@ -181,7 +236,10 @@ engine.init(ball).then(() => {
   engine.addObject(windmillBlade1);
   engine.addObject(windmillBlade2);
   engine.addObject(movingPlatform);
-
+  engine.addObject(abcBlock1);
+  engine.addObject(abcBlock2);
+  engine.addObject(abcBlock3);
+  engine.addObject(abcBlock4);
   // Configurar a luz com opção para mostrar o gizmo (representação visual)
   engine.light.position = lightPos;
   engine.light.color = lightColor;
