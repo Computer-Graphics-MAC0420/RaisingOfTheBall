@@ -6,17 +6,23 @@ class Light extends Object3D {
   #color = vec4(0, 0, 0, 1);
 
   // Parâmetros da perspectiva da luz para shadow mapping
-  #shadowFov = 90;
-  #shadowNear = 0.5;
-  #shadowFar = 100.0;
+  #shadowFov = 90; // FOV mais amplo para capturar mais área da cena
+  #shadowNear = 1.0;
+  #shadowFar = 1000.0;
   #shadowAspect = 1.0; // geralmente 1.0 para shadow map quadrado
+
+  // Parâmetros para projeção ortográfica (alternativa)
+  #shadowLeft = -800;
+  #shadowRight = 800;
+  #shadowBottom = -800;
+  #shadowTop = 800;
 
   constructor({
     color = vec4(1, 1, 1, 1),
     showGizmo = false,
-    shadowFov = 120,
-    shadowNear = 0.5,
-    shadowFar = 100.0,
+    // shadowFov = 120,
+    // shadowNear = 0.5,
+    // shadowFar = 100.0,
   } = {}) {
     const options = {};
     if (showGizmo) {
@@ -31,9 +37,9 @@ class Light extends Object3D {
 
     super(options);
     this.#color = color;
-    this.#shadowFov = shadowFov;
-    this.#shadowNear = shadowNear;
-    this.#shadowFar = shadowFar;
+    // this.#shadowFov = shadowFov;
+    // this.#shadowNear = shadowNear;
+    // this.#shadowFar = shadowFar;
   }
 
   get color() {
@@ -52,9 +58,9 @@ class Light extends Object3D {
     // Posição da luz como a origem da visualização
     const eye = this.position;
 
-    // Direcionando para um ponto levemente abaixo do centro da cena
-    // Isso ajuda a melhorar o cálculo das sombras com projeção em perspectiva
-    const at = vec3(0, -1, 0);
+    // Para projeção ortográfica, é melhor a luz apontar diretamente para baixo
+    // Calculamos um ponto diretamente abaixo da luz
+    const at = vec3(eye[0], eye[1], eye[2] - 100); // 100 unidades abaixo da luz
 
     // Vetor "para cima" na cena (eixo Y é para cima em coordenadas do mundo)
     const up = vec3(0, 1, 0);
@@ -68,15 +74,24 @@ class Light extends Object3D {
    * @returns {Array} - Matriz 4x4 de projeção para o shadow mapping
    */
   getProjectionMatrix() {
-    // Usar projeção em perspectiva para o shadow mapping
-    // Configuração específica para shadow mapping com campo de visão mais amplo
-    // e distância mais próxima adequada para evitar artefatos de sombra
-    return perspective(
-      this.#shadowFov,
-      this.#shadowAspect,
+    // Testar com projeção ortográfica para shadow mapping
+    // Ortográfica às vezes funciona melhor para sombras direcionais
+    return ortho(
+      this.#shadowLeft,
+      this.#shadowRight,
+      this.#shadowBottom,
+      this.#shadowTop,
       this.#shadowNear,
       this.#shadowFar
     );
+
+    // Versão em perspectiva (comentada temporariamente)
+    // return perspective(
+    //   this.#shadowFov,
+    //   this.#shadowAspect,
+    //   this.#shadowNear,
+    //   this.#shadowFar
+    // );
   }
 }
 

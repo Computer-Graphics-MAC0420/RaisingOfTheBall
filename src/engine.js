@@ -78,7 +78,7 @@ class Engine {
    * @private
    * @type {number} - Resolução do shadow map
    */
-  #shadowMapResolution = 1024;
+  #shadowMapResolution = 1024 * 8;
 
   /**
    * @type {function(number):void|undefined} - Callback function for update events
@@ -152,8 +152,11 @@ class Engine {
         if (!cubeMesh || !cubeMesh.size) continue;
 
         // Check if the object is rotated
-        const isRotated = cube.rotation[0] !== 0 || cube.rotation[1] !== 0 || cube.rotation[2] !== 0;
-        
+        const isRotated =
+          cube.rotation[0] !== 0 ||
+          cube.rotation[1] !== 0 ||
+          cube.rotation[2] !== 0;
+
         let result;
         if (isRotated) {
           // Use simpler OOBB collision detection for rotated objects
@@ -165,10 +168,13 @@ class Engine {
 
         if (result.colliding) {
           // Debug log
-          console.log("Collision detected with object at position:", cube.position, "Normal:", result.normal, "Penetration:", result.penetration);
-          
+          // console.log("Collision detected with object at position:", cube.position, "Normal:", result.normal, "Penetration:", result.penetration);
+
           // Correct position
-          ball.center = add(ball.center, mult(result.penetration, result.normal));
+          ball.center = add(
+            ball.center,
+            mult(result.penetration, result.normal)
+          );
 
           // Apply bouncing behavior for all collisions
           let cameraBase = mat3();
@@ -178,7 +184,7 @@ class Engine {
           const worldVelocity = mult(cameraBase, ball.velocity.translation);
 
           const dotProduct = dot(worldVelocity, result.normal);
-          
+
           // Only bounce if moving towards the surface
           if (dotProduct < 0) {
             const reflectionWorld = subtract(
@@ -191,9 +197,9 @@ class Engine {
 
             const BOUNCE_FACTOR = 0.6;
             const EPSILON = 0.001; // Small value to stop tiny bounces
-            
+
             ball.velocity.translation = mult(BOUNCE_FACTOR, reflectionCamera);
-            
+
             // Stop very small bounces to prevent infinite bouncing
             if (Math.abs(ball.velocity.translation[0]) < EPSILON) {
               ball.velocity.translation[0] = 0;
@@ -228,19 +234,23 @@ class Engine {
     const cubeRotation = cube.rotation;
 
     // Build transformation matrices manually for better control
-    const translationMatrix = translate(cubePosition[0], cubePosition[1], cubePosition[2]);
+    const translationMatrix = translate(
+      cubePosition[0],
+      cubePosition[1],
+      cubePosition[2]
+    );
     const rotationMatrix = mult(
-      mult(
-        rotateZ(cubeRotation[2]),
-        rotateY(cubeRotation[1])
-      ),
+      mult(rotateZ(cubeRotation[2]), rotateY(cubeRotation[1])),
       rotateX(cubeRotation[0])
     );
     const scaleMatrix = scale(cubeScale[0], cubeScale[1], cubeScale[2]);
-    
+
     // Combine transformations: T * R * S
-    const modelMatrix = mult(mult(translationMatrix, rotationMatrix), scaleMatrix);
-    
+    const modelMatrix = mult(
+      mult(translationMatrix, rotationMatrix),
+      scaleMatrix
+    );
+
     // Get the inverse transformation matrix
     let inverseMatrix;
     try {
@@ -251,9 +261,18 @@ class Engine {
     }
 
     // Transform ball center to cube's local coordinate system
-    const ballCenterHomogeneous = vec4(ball.center[0], ball.center[1], ball.center[2], 1.0);
+    const ballCenterHomogeneous = vec4(
+      ball.center[0],
+      ball.center[1],
+      ball.center[2],
+      1.0
+    );
     const localBallCenterHomo = mult(inverseMatrix, ballCenterHomogeneous);
-    const localBallCenter = vec3(localBallCenterHomo[0], localBallCenterHomo[1], localBallCenterHomo[2]);
+    const localBallCenter = vec3(
+      localBallCenterHomo[0],
+      localBallCenterHomo[1],
+      localBallCenterHomo[2]
+    );
 
     // In local space, the cube is a unit cube scaled by the base size
     const halfSize = cubeBaseSize / 2;
@@ -261,15 +280,24 @@ class Engine {
 
     // Find closest point on the local AABB to the local ball center
     const closestPointLocal = vec3(
-      Math.max(-localHalfSize[0], Math.min(localBallCenter[0], localHalfSize[0])),
-      Math.max(-localHalfSize[1], Math.min(localBallCenter[1], localHalfSize[1])),
-      Math.max(-localHalfSize[2], Math.min(localBallCenter[2], localHalfSize[2]))
+      Math.max(
+        -localHalfSize[0],
+        Math.min(localBallCenter[0], localHalfSize[0])
+      ),
+      Math.max(
+        -localHalfSize[1],
+        Math.min(localBallCenter[1], localHalfSize[1])
+      ),
+      Math.max(
+        -localHalfSize[2],
+        Math.min(localBallCenter[2], localHalfSize[2])
+      )
     );
 
     // Calculate distance in local space
     const distanceVecLocal = subtract(localBallCenter, closestPointLocal);
     const distanceLocal = Math.sqrt(dot(distanceVecLocal, distanceVecLocal));
-    
+
     // Scale the ball radius to local space - we need to account for non-uniform scaling
     // Use the minimum scale factor to be conservative
     const minScale = Math.min(cubeScale[0], cubeScale[1], cubeScale[2]);
@@ -278,7 +306,7 @@ class Engine {
     if (distanceLocal < localBallRadius) {
       // Collision detected
       const penetration = localBallRadius - distanceLocal;
-      
+
       // Calculate normal in local space
       let normalLocal;
       if (distanceLocal > 0.001) {
@@ -288,9 +316,9 @@ class Engine {
         const distToFaces = [
           localHalfSize[0] - Math.abs(localBallCenter[0]), // distance to X faces
           localHalfSize[1] - Math.abs(localBallCenter[1]), // distance to Y faces
-          localHalfSize[2] - Math.abs(localBallCenter[2])  // distance to Z faces
+          localHalfSize[2] - Math.abs(localBallCenter[2]), // distance to Z faces
         ];
-        
+
         const minDistIndex = distToFaces.indexOf(Math.min(...distToFaces));
         normalLocal = vec3(0, 0, 0);
         normalLocal[minDistIndex] = localBallCenter[minDistIndex] > 0 ? 1 : -1;
@@ -306,9 +334,14 @@ class Engine {
         // Fallback: just use rotation matrix for normal transformation
         normalMatrix = transpose(rotationMatrix);
       }
-      
-      const normalWorldHomo = mult(normalMatrix, vec4(normalLocal[0], normalLocal[1], normalLocal[2], 0.0));
-      const normalWorld = normalize(vec3(normalWorldHomo[0], normalWorldHomo[1], normalWorldHomo[2]));
+
+      const normalWorldHomo = mult(
+        normalMatrix,
+        vec4(normalLocal[0], normalLocal[1], normalLocal[2], 0.0)
+      );
+      const normalWorld = normalize(
+        vec3(normalWorldHomo[0], normalWorldHomo[1], normalWorldHomo[2])
+      );
 
       // Scale penetration back to world space
       const worldPenetration = penetration * minScale;
@@ -316,14 +349,14 @@ class Engine {
       return {
         colliding: true,
         normal: normalWorld,
-        penetration: worldPenetration
+        penetration: worldPenetration,
       };
     }
 
     return {
       colliding: false,
       normal: vec3(0, 0, 0),
-      penetration: 0
+      penetration: 0,
     };
   }
 
@@ -363,7 +396,7 @@ class Engine {
 
     // Find closest point on the OBB to the sphere center
     let closestPoint = vec3(0, 0, 0);
-    
+
     // Project the ball-to-cube vector onto each axis and clamp to the box extents
     const projX = dot(ballToCube, axisX);
     const projY = dot(ballToCube, axisY);
@@ -374,10 +407,10 @@ class Engine {
     const clampedZ = Math.max(-halfExtents[2], Math.min(projZ, halfExtents[2]));
 
     // Construct the closest point in world space
-    closestPoint = add(cubePosition, 
-      add(add(
-        mult(clampedX, axisX),
-        mult(clampedY, axisY)),
+    closestPoint = add(
+      cubePosition,
+      add(
+        add(mult(clampedX, axisX), mult(clampedY, axisY)),
         mult(clampedZ, axisZ)
       )
     );
@@ -390,7 +423,7 @@ class Engine {
     if (distanceSq < ballRadius * ballRadius) {
       const distance = Math.sqrt(distanceSq);
       const penetration = ballRadius - distance;
-      
+
       let normal;
       if (distance > 0.001) {
         normal = normalize(distanceVec);
@@ -399,27 +432,27 @@ class Engine {
         const penetrations = [
           halfExtents[0] - Math.abs(projX),
           halfExtents[1] - Math.abs(projY),
-          halfExtents[2] - Math.abs(projZ)
+          halfExtents[2] - Math.abs(projZ),
         ];
-        
+
         const minPenIndex = penetrations.indexOf(Math.min(...penetrations));
         const axes = [axisX, axisY, axisZ];
         const projections = [projX, projY, projZ];
-        
-        normal = mult((projections[minPenIndex] > 0 ? 1 : -1), axes[minPenIndex]);
+
+        normal = mult(projections[minPenIndex] > 0 ? 1 : -1, axes[minPenIndex]);
       }
 
       return {
         colliding: true,
         normal: normal,
-        penetration: penetration
+        penetration: penetration,
       };
     }
 
     return {
       colliding: false,
       normal: vec3(0, 0, 0),
-      penetration: 0
+      penetration: 0,
     };
   }
 
@@ -463,14 +496,14 @@ class Engine {
       return {
         colliding: true,
         normal: normal,
-        penetration: penetration
+        penetration: penetration,
       };
     }
 
     return {
       colliding: false,
       normal: vec3(0, 0, 0),
-      penetration: 0
+      penetration: 0,
     };
   }
 
@@ -582,16 +615,30 @@ class Engine {
     const lightMatrix = mult(lightProjection, lightView);
 
     // Renderiza o gizmo da luz, se necessário
-    this.renderObject(this.#light);
+    if (this.#light.material) {
+      this.setActiveShader(this.#light.shader);
+      this.renderObjectWithShader(this.#light);
+    }
 
     const objByShader = {};
+
+    // Adiciona a bola aos objetos a serem renderizados
+    if (this.#ball && this.#ball.material) {
+      const ballShaderName = this.#ball.material.shader;
+      if (!objByShader[ballShaderName]) {
+        objByShader[ballShaderName] = [];
+      }
+      objByShader[ballShaderName].push({ obj: this.#ball, fromMatrix: true });
+    }
+
+    // Adiciona os outros objetos
     for (const obj of Object.values(this.#objects)) {
       if (obj.material) {
         const shaderName = obj.material.shader;
         if (!objByShader[shaderName]) {
           objByShader[shaderName] = [];
         }
-        objByShader[shaderName].push(obj);
+        objByShader[shaderName].push({ obj: obj, fromMatrix: false });
       }
     }
 
@@ -599,26 +646,79 @@ class Engine {
     for (const [shaderName, objects] of Object.entries(objByShader)) {
       this.setActiveShader(shaderName);
 
-      // Antes de renderizar, configura a textura do shadow map
-      gl.activeTexture(gl.TEXTURE1); // Use TEXTURE1 para o shadow map
-      gl.bindTexture(gl.TEXTURE_2D, this.#shadowDepthTexture);
+      for (const objData of objects) {
+        // Configura o shadow map para cada objeto individualmente
+        const gl = this.gl;
+        gl.activeTexture(gl.TEXTURE1); // Use TEXTURE1 para o shadow map
+        gl.bindTexture(gl.TEXTURE_2D, this.#shadowDepthTexture);
 
-      if (this.#activeShader.hasUniform("uShadowMap")) {
-        this.#activeShader.setUniform1i("uShadowMap", 1); // TEXTURE1
-      }
+        if (this.#activeShader.hasUniform("uShadowMap")) {
+          this.#activeShader.setUniform1i("uShadowMap", 1); // TEXTURE1
+        }
 
-      if (this.#activeShader.hasUniform("uLightMatrix")) {
-        this.#activeShader.setUniformMatrix4fv(
-          "uLightMatrix",
-          false,
-          flatten(lightMatrix)
-        );
-      }
+        if (this.#activeShader.hasUniform("uLightMatrix")) {
+          this.#activeShader.setUniformMatrix4fv(
+            "uLightMatrix",
+            false,
+            flatten(lightMatrix)
+          );
+        }
 
-      this.renderObject(this.#ball, true);
-      for (const obj of objects) {
-        this.renderObject(obj);
+        this.renderObject(objData.obj, objData.fromMatrix);
       }
+    }
+  }
+
+  renderObjectWithShader(obj, fromMatrix = false) {
+    const gl = this.gl;
+    if (!(obj instanceof Object3D)) {
+      throw new Error("obj must be an instance of Object3D");
+    }
+
+    // Use o shader do material ou o shader padrão do objeto
+    this.setActiveShader(obj.shader);
+
+    if (!this.#activeShader) {
+      throw new Error("No active shader");
+    }
+
+    // Vincula a luz ao shader usando o novo método bindLight
+    this.#activeShader.bindLight(this.#light);
+
+    this.bindCamera();
+
+    if (obj.mesh) {
+      this.bindMesh(obj.mesh);
+    }
+
+    // Se o objeto tiver um material, aplique-o
+    if (obj.material) {
+      // Aplique os uniforms adicionais do material
+      obj.material.apply(this.gl, this.#activeShader);
+    }
+
+    let model = mat4();
+    if (fromMatrix) {
+      const trans = obj.modelTrans;
+      const rot = obj.modelRot;
+      const scale = obj.modelScale;
+      model = obj.getModelMatrixGivenMatrix(trans, rot, scale);
+    } else {
+      model = obj.getModelMatrix();
+    }
+    this.#activeShader.setUniformMatrix4fv("uModel", false, flatten(model));
+
+    if (obj.mesh.useIndices) {
+      // Renderiza usando índices
+      this.gl.drawElements(
+        this.gl.TRIANGLES,
+        obj.mesh.numV,
+        this.gl.UNSIGNED_SHORT,
+        0
+      );
+    } else {
+      // Renderiza sem usar índices
+      this.gl.drawArrays(this.gl.TRIANGLES, 0, obj.mesh.vertices.length);
     }
   }
 
@@ -652,7 +752,7 @@ class Engine {
     const gl = this.gl;
 
     this.#ball = ball;
-    this.#camera = new Camera({ball: ball});
+    this.#camera = new Camera({ ball: ball });
     this.#light = new Light({
       showGizmo: true, //! Remove this if you don't want to show the light gizmo
     });
@@ -843,8 +943,8 @@ class Engine {
       throw new Error("obj must be an instance of Object3D");
     }
 
-    // Use o shader do material ou o shader padrão do objeto
-    this.setActiveShader(obj.shader);
+    // NÃO chama setActiveShader aqui, pois já foi chamado no loop principal
+    // this.setActiveShader(obj.shader);
 
     if (!this.#activeShader) {
       throw new Error("No active shader");
@@ -954,7 +1054,6 @@ class Engine {
   getShader(name) {
     return this.#shaders[name];
   }
-
 }
 
 export default Engine;

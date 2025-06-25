@@ -40,14 +40,15 @@ float calculateShadow(vec4 positionLightSpace) {
     return 1.0f;
   }
 
-  // Aplica bias para evitar shadow acne (problemas de precisão)
-  float bias = 0.005f;
+  // Aplica bias adaptativo para evitar shadow acne
+  float bias = 0.001f; // Reduzido para permitir sombras mais distantes
 
   // Obtém a profundidade mais próxima armazenada no shadow map
   float closestDepth = texture(uShadowMap, projCoords.xy).r;
 
+  // Debug: verificar se as coordenadas estão fora do frustum da luz
   if(projCoords.x > 1.0f || projCoords.x < 0.0f || projCoords.y > 1.0f || projCoords.y < 0.0f) {
-    return 1.0f;
+    return 1.0f; // Não há sombra fora do frustum da luz
   }
 
   // O fragmento está na sombra se a sua profundidade for maior que a do shadow map

@@ -19,10 +19,9 @@ const engine = new Engine();
 const CAMERA_SPEED = 0.005;
 const CAMERA_ROTATION_SPEED = 0.04; // Velocidade de rotação da câmera
 
-const LIGHT_SPEED = 0.005; // Velocidade de movimento da luz
-const lightPos = vec3(0, 0, 500);
+const LIGHT_SPEED = 0.5; // Velocidade de movimento da luz
+const lightPos = vec3(-4, 0, 500);
 const lightColor = rgb(255, 255, 255);
-
 
 const defaultMaterial = new Solid({
   color: rgb(204, 83, 83),
@@ -37,6 +36,15 @@ const obj1 = new Object3D({
     size: 20,
   }),
   collidable: true,
+});
+const box = new Object3D({
+  position: vec3(0, 0, 50),
+  mesh: new Cube({
+    size: 10,
+  }),
+  material: new Solid({
+    color: rgb(94, 255, 0),
+  }),
 });
 
 const ballTexture = new Texture(engine.gl, "./src/assets/pixar.png", {
@@ -165,7 +173,7 @@ const platformMovement = {
 };
 
 engine.init(ball).then(() => {
-  console.log("Engine initialized");  
+  console.log("Engine initialized");
   engine.addObject(obj1);
   engine.addObject(obj2);
   engine.addObject(obj3);
@@ -174,6 +182,7 @@ engine.init(ball).then(() => {
   engine.addObject(windmillBlade1);
   engine.addObject(windmillBlade2);
   engine.addObject(movingPlatform);
+  engine.addObject(box);
 
   // Configurar a luz com opção para mostrar o gizmo (representação visual)
   engine.light.position = lightPos;
@@ -218,12 +227,19 @@ function handleMovement(dt) {
   windmillBlade2.rotation[1] += rotationSpeed * dt;
 
   // Animate moving platform
-  movingPlatform.position[0] += platformMovement.direction * platformMovement.speed * dt;
-  
+  movingPlatform.position[0] +=
+    platformMovement.direction * platformMovement.speed * dt;
+
   // Check if platform needs to change direction
-  if (movingPlatform.position[0] > platformMovement.centerX + platformMovement.range) {
+  if (
+    movingPlatform.position[0] >
+    platformMovement.centerX + platformMovement.range
+  ) {
     platformMovement.direction = -1; // Move left
-  } else if (movingPlatform.position[0] < platformMovement.centerX - platformMovement.range) {
+  } else if (
+    movingPlatform.position[0] <
+    platformMovement.centerX - platformMovement.range
+  ) {
     platformMovement.direction = 1; // Move right
   }
 
@@ -248,10 +264,10 @@ function handleMovement(dt) {
   // Teclas I, J, K, L para mover no plano XZ
   // Teclas U, O para mover no eixo Y
   if (isKeyPressed("i")) {
-    engine.light.position[2] -= LIGHT_SPEED * dt; // Mover para frente (Z-)
+    engine.light.position[1] -= LIGHT_SPEED * dt; // Mover para frente (Z-)
   }
   if (isKeyPressed("k")) {
-    engine.light.position[2] += LIGHT_SPEED * dt; // Mover para trás (Z+)
+    engine.light.position[1] += LIGHT_SPEED * dt; // Mover para trás (Z+)
   }
   if (isKeyPressed("j")) {
     engine.light.position[0] -= LIGHT_SPEED * dt; // Mover para esquerda (X-)
@@ -260,11 +276,12 @@ function handleMovement(dt) {
     engine.light.position[0] += LIGHT_SPEED * dt; // Mover para direita (X+)
   }
   if (isKeyPressed("u")) {
-    engine.light.position[1] += LIGHT_SPEED * dt; // Mover para cima (Y+)
+    engine.light.position[2] += LIGHT_SPEED * dt; // Mover para cima (Y+)
   }
   if (isKeyPressed("o")) {
-    engine.light.position[1] -= LIGHT_SPEED * dt; // Mover para baixo (Y-)
+    engine.light.position[2] -= LIGHT_SPEED * dt; // Mover para baixo (Y-)
   }
+  console.log("Posição da luz:", engine.light.position);
 }
 
 window.addEventListener("resize", () => {
@@ -275,7 +292,8 @@ window.addEventListener("resize", () => {
 var isPointerLocked = false;
 function lockPointer() {
   if (!isPointerLocked) {
-    canvas.requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock;
+    canvas.requestPointerLock =
+      canvas.requestPointerLock || canvas.mozRequestPointerLock;
     canvas.requestPointerLock();
     canvas.focus();
   }
@@ -286,10 +304,16 @@ function disableLockPointer(event) {
   }
 }
 function pointerLockChange() {
-  isPointerLocked = document.pointerLockElement === canvas || document.mozPointerLockElement === canvas;
+  isPointerLocked =
+    document.pointerLockElement === canvas ||
+    document.mozPointerLockElement === canvas;
 }
 function onPointerMove(event) {
+  console.log("Pointer moved:", event.movementX, event.movementY);
   if (!isPointerLocked) return;
   const camera = engine.camera;
-  camera.rotateCamera(event.movementX * CAMERA_ROTATION_SPEED, event.movementY * CAMERA_ROTATION_SPEED);
+  camera.rotateCamera(
+    event.movementX * CAMERA_ROTATION_SPEED,
+    event.movementY * CAMERA_ROTATION_SPEED
+  );
 }

@@ -1,6 +1,6 @@
 const SENSE_CAMERA = 1;
-const MIN_PHI_ANGLE = 1; // Minimum vertical angle for the camera
-const MAX_PHI_ANGLE = 25; // Maximum vertical angle for the camera
+const MIN_PHI_ANGLE = -50; // Minimum vertical angle for the camera
+const MAX_PHI_ANGLE = 50; // Maximum vertical angle for the camera
 
 class Camera {
   #ball;
@@ -45,7 +45,7 @@ class Camera {
     at = vec3(0, 0, 0),
     up = vec3(0, 0, 1),
   } = {}) {
-    this.#ball = ball;    
+    this.#ball = ball;
     this.#distance = distance;
     this.#thetaAngle = thetaAngle;
     this.#phiAngle = phiAngle;
@@ -63,7 +63,7 @@ class Camera {
     this.coordinateX = vec3(-1.0, 0.0, 0.0);
     this.coordinateY = vec3(0.0, -1.0, 0.0);
     this.coordinateZ = vec3(0.0, 0.0, 1.0);
-    
+
     // Smoothing factor (0.0 - 1.0)
     this.lerpAlpha = lerpAlpha;
   }
@@ -129,8 +129,10 @@ class Camera {
     const center = this.#ball.center;
     const thetaRad = radians(this.#thetaAngle);
     const phiRad = radians(this.#phiAngle);
-    const x = center[0] + this.#distance * Math.cos(phiRad) * Math.sin(thetaRad);
-    const y = center[1] + this.#distance * Math.cos(phiRad) * Math.cos(thetaRad);
+    const x =
+      center[0] + this.#distance * Math.cos(phiRad) * Math.sin(thetaRad);
+    const y =
+      center[1] + this.#distance * Math.cos(phiRad) * Math.cos(thetaRad);
     const z = center[2] + this.#distance * Math.sin(phiRad);
     return vec3(x, y, z);
   }
@@ -138,7 +140,10 @@ class Camera {
   rotateCamera(deltaX, deltaY) {
     this.#thetaAngle = (this.#thetaAngle + deltaX * SENSE_CAMERA) % 360;
     this.#phiAngle = (this.#phiAngle + deltaY * SENSE_CAMERA) % 360;
-    this.#phiAngle = Math.max(MIN_PHI_ANGLE, Math.min(MAX_PHI_ANGLE, this.#phiAngle));
+    this.#phiAngle = Math.max(
+      MIN_PHI_ANGLE,
+      Math.min(MAX_PHI_ANGLE, this.#phiAngle)
+    );
     this.updateCoordinates();
   }
 
