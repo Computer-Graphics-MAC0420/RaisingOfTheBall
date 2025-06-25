@@ -142,6 +142,28 @@ const windmillBlade2 = new Object3D({
   collidable: true,
 });
 
+// Moving platform that goes side to side
+const movingPlatform = new Object3D({
+  position: vec3(10, -200, 150), // Starting position
+  rotation: vec3(0, 0, 0),
+  scale: vec3(15, 2, 8), // Wide, thin platform
+  material: new Solid({
+    color: rgb(150, 75, 200), // Purple color
+  }),
+  mesh: new Cube({
+    size: 20,
+  }),
+  collidable: true,
+});
+
+// Platform movement properties
+const platformMovement = {
+  speed: 0.08, // Movement speed
+  range: 250, // How far it moves from center (total range is 2 * range)
+  direction: 1, // 1 for right, -1 for left
+  centerX: 0, // Center position
+};
+
 engine.init(ball).then(() => {
   console.log("Engine initialized");  
   engine.addObject(obj1);
@@ -151,6 +173,7 @@ engine.init(ball).then(() => {
   engine.addObject(obj5);
   engine.addObject(windmillBlade1);
   engine.addObject(windmillBlade2);
+  engine.addObject(movingPlatform);
 
   // Configurar a luz com opção para mostrar o gizmo (representação visual)
   engine.light.position = lightPos;
@@ -193,6 +216,16 @@ function handleMovement(dt) {
   const rotationSpeed = 0.2; // Adjust speed as needed
   windmillBlade1.rotation[1] += rotationSpeed * dt;
   windmillBlade2.rotation[1] += rotationSpeed * dt;
+
+  // Animate moving platform
+  movingPlatform.position[0] += platformMovement.direction * platformMovement.speed * dt;
+  
+  // Check if platform needs to change direction
+  if (movingPlatform.position[0] > platformMovement.centerX + platformMovement.range) {
+    platformMovement.direction = -1; // Move left
+  } else if (movingPlatform.position[0] < platformMovement.centerX - platformMovement.range) {
+    platformMovement.direction = 1; // Move right
+  }
 
   // Controles da bola
   if (isKeyPressed("w")) {
