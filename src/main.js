@@ -47,6 +47,16 @@ const ballMaterial = new Material({
   texture: ballTexture,
   specularFactor: 0.2,
 });
+
+const legoTexture = new Texture(engine.gl, "./src/assets/lego.png", {
+  filter: "LINEAR",
+  mipmap: true,
+});
+const legoMaterial = new Material({
+  shader: "textured",
+  texture: legoTexture,
+  specularFactor: 0.3,
+});
 const radius = 20; // Raio da esfera
 const ball = new Ball3D(radius, {
   position: vec3(-4, 0, 100), // Start higher up to test falling
@@ -92,10 +102,8 @@ const obj3 = new Object3D({
 const obj4 = new Object3D({
   position: vec3(0, -60, 40),
   rotation: vec3(0, 0, 0),
-  scale: vec3(4, 4, 6),
-  material: new Solid({
-    color: rgb(200, 120, 50),
-  }),
+  scale: vec3(4, 4, 4),
+  material: legoMaterial,
   mesh: new Cube({
     size: 20,
   }),
